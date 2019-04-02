@@ -1,0 +1,94 @@
+
+Depth is important in NN.
+
+Backpropagation is key to NN & is why it works.
+
+Smooth non-linearities (sigmoid, tanh) slow down training and Rectifying non-linearities (ReLU) was discovered to avoid this
+	- The inspiration came from biological neuron 
+	- The notion that information is distributed across the activations of many neuron rather than being represented a single grandmother cell.
+	
+Statistical learning had issues with dimensionality (CURSE OF DIMENSIONALITY) specially with higher dimensionality & NN was used to abstract & model it efficiently
+	- NN neurons were used to build distributed representations that model/represent the joint distributions over many random variables in a very efficient way.
+	- This was then extended to model/represent joint distributions over sequences of words. This was how Word Embeddings came about.
+	
+Word Embeddings
+	- The notion that semantic meaning of sequences of words (generalization across words that have similar semantic meaning) can be modeled as joint distributions over them is the idea behind Word Embeddings.
+	- Papers like MADE came from this.
+	
+
+Long term dependencies??
+
+Deep learning with stacks of Auto Encoders & stacks of RBMs
+
+Issues with initialization when training very deep NNs especially the vanishing & exploding gradients
+	- Solved with He initialization (small, scaled random values)
+	- Lead to paper on Importance of piecewise linear activation functions to improve NNs.
+
+Unsupervised Learning
+	- Denoising of Auto Encoders
+	- GAN (Generative Adversarial Networks)
+	- Neural Machine Translation With Attention - Really important for making translation work & used by Google Translate & others
+		- Attention, changed the view on NN
+			- No longer seen as machines that can map a vector to a vector
+			- With Attention mechanisms you can now handle any kind of data structure
+	- Really important
+	- Supervised Learning requires humans to define what the important concepts are for a problem & to label those concepts in the data.
+		- Current industrial systems are built on this
+		- But humans do much more by exploring, observation & interaction with the world
+		- How does a  2 year old learn, that's the questions to answer in unsupervised learning
+			- Its not about labels vs no labels
+			- Its about building a model/construction of how things work by observation & this is where Reinforcement learning comes in.
+	- Combining the ideas in Unsupervised Learning with the ideas in Reinforcement Learning we can generalize the underlying concepts
+		- Not just the idea of learning good representations that we focus on in Unsupervised Learning but also understanding how & what it is (a good representation is).
+		- How do we figure out an objective function for example
+		- We don't even have a good definition of what's the right objective function to even measure if the system/model is doing a good job on unsupervised learning
+	
+Connecting to Biology
+	- Could we come up with something like backprop but that brains could implement (Neuroscience field).
+	- On the one hand we understand some of the methods of learning in the brain like Spike timing dependent plasticity
+	- On the other hand we have the concepts of ML like globally training a whole system/model with respect to a single global objective function, the idea of credit assignment (via weights/parameters) & then using backprop for the learning
+		- What does backprop mean & what does credit assignment mean?
+	- Combining the two there must be an underlying more general class of learning or concepts behind backprop that makes it efficient & a larger family of ways to do credit assignment
+		- This connects to similar questions in Reinforcement Learning
+	- Inspired by Jeoff Hinton's thoughts (2007 - First deep learning workshop)
+		- How temporal code could be used to potentially do some of the job of backprop
+
+Reinforcement Learning
+	- Very important.
+
+Exiting things in Deep Learning today
+	- Science of deep learning not just as an engineering discipline
+		- Formalize logically, then mathematically
+			- Ask questions like what makes training in deeper networks harder or recurrent nets harder. So do experiments to not find a better algorithm but to better understands the ones we have. Its the Why.
+	- Direction of research where we are not focused on building systems that do something useful but where we are going back to basic principles of how can a computer learn by observing, interacting/exploring and understanding the world & discover how it works.
+		- Even if its a simple artificial video game world that we can program (we don't currently know how to do that well).
+	- Fruitful interaction between the ideas in Deep Learning & Reinforcement Learning is very important to note here. This has profound practical applications in many areas like,
+		- How do we deal with new domains
+		- Categories where we have very few examples
+		- In cases where humans are still very good at solving those above problems
+			- Transfer Learning & dramatization issues.
+		- These can be easily handled if we have models/systems that better understand how the world works. Deeper understanding.
+			- What is actually going on in what i am seeing.
+			- What are the causes of what i am seeing & how could i influence what i am seeing by my actions.
+		- A lot of success in Deep Learning has been with perception what's left is High Level Condition
+			- Which is about understanding at the abstract level how things work.
+			- Our program of understanding high level abstractions has not reached those high levels of abstractions
+				- We have to think about reasoning, about sequential processing of information
+				- We have to think of how causality works
+				- And how machines can discover all these things by themselves, potentially guided by humans but as much as possible in an autonomous way.
+
+
+Suggestions & Advice
+	- Motivations
+		- Engineer using DL to build products VS Researcher.
+	- Read a lot
+	- Practice programming & experiment (look at other's code & write yourself)
+	- Don't just use one of the programming frameworks where you do everything in a few lines of code but don't know what's going on
+		- Try to derive the thing yourself from First Principles if you can
+
+	- Math & Computer Science
+		- Probability, Algebra, Calculus & Optimization
+	- Book :   Deep Learning by Ian Goodfellow, Yoshua Bengio, Aaron Courville
+	- Papers : Proceedings of the ICLR conference, others are NIPS & ICML
+		- To get good view of the field.
+

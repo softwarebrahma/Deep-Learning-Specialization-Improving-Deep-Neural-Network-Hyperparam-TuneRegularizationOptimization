@@ -1,0 +1,170 @@
+
+Understanding exponentially weighted averages:
+
+Using the exponentially weighted averages formula from before where Vt = beta * Vt-1 + (1 - beta) * @t
+
+If we take t = 100 & beta = 0.9 & expand V100,
+
+V100 = 0.9 * V99 + (1 - 0.9) * @100
+
+This can be rewritten by swapping the addition terms as,
+
+V100 = (1 - 0.9) * @100 + 0.9 * V99 
+	 = 0.1 * @100 + 0.9 * V99
+
+Now we can expand V99 as before as,
+
+V100 = 0.1 * @100 + 0.9 * ( 0.1 * @99 + 0.9 * V98 )
+
+Similarly we can expand V98 as before as,
+
+V100 = 0.1 * @100 + 0.9 * ( 0.1 * @99 + 0.9 * ( 0.1 * @98 + 0.9 * V97 ) )
+
+Rewriting the coefficients we get,
+
+V100 = (0.1) * @100 + (0.1 * 0.9) * @99 + (0.1 * 0.9 * 0.9) * @98 + (0.1 * 0.9 * 0.9 * 0.9) * @97 + ...
+
+Rewriting the coefficients as powers we get,
+
+V100 = (0.1) * @100 + (0.1 * 0.9 ^ 1) * @99 + (0.1 * 0.9 ^ 2) * @98 + (0.1 * 0.9 ^ 3) * @97 + ...
+
+
+We see from the above that V100 is really a weighted sum & hence a weighted average of the temperatures where we use an exponentially decaying function (1 / e) to compute the weighted average.
+
+If we plot this we will see that we compute the weighted average on each day/interval by doing an element wise multiplication of the temperatures with their corresponding exponentially decaying function coefficients & summing it up.
+
+The coefficient terms 0.1, (0.1 * 0.9 ^ 1), (0.1 * 0.9 ^ 2), (0.1 * 0.9 ^ 3) all add up to 1 or very close to 1 upto a certain bias correction term & this is why this is called exponentially weighted averages.
+
+The reason we say that this averages over approximately ~= 1 / (1 - beta) is below,
+
+The exponentially decaying function can we written as,
+
+(1 - epsilon) ^ (1 / epsilon) = 1 / e ~= 0.35
+
+	where
+		- epsilon = (1 - beta)
+		- e is the natural logarithm constant (2.78..)
+		- where the exponentially decaying function decays by one third (0.35) in every interval of 1 / epsilon
+
+For beta = 0.9 that we wrote above we see that only at 0.9 ^ 10 we get the value of 0.35. So we say it roughly averages over 10 days of temperatures.	(epsilon becomes 0.1, so, (1 - 0.1) ^ (1 / 0.1) = 0.9 ^ 10 ~= 0.35 )
+
+For beta = 0.98 that we wrote above we see that only at 0.98 ^ 50 we get the value of 0.35. So we say it roughly averages over 50 days of temperatures.	(epsilon becomes 0.02, so, (1 - 0.02) ^ (1 / 0.02) = 0.98 ^ 50 ~= 0.35 )
+
+
+Implementing exponentially weighted averages:
+
+When implementing exponentially weighted averages for parameters we don't treat/store each V value as separate instead we do the below accumulation where we store & use the newly computed values using a single variable V@,
+ 
+V@ = beta * V@ + (1 - beta) * @t
+
+So we do the below code,
+
+V@ = 0
+Repeat {
+	Get the next value of @, @t
+	V@ = beta * V@ + (1 - beta) * @t
+}
+
+This method of computing averages where we use a single variable & accumulate is far more efficient than keeping the previous terms in memory, adding them & then dividing by the number of terms even though this will be more accurate than the exponentially weighted averaging we do above.
+
+The efficiency we get in terms of memory & cpu where we have much less time & space complexity is why this is the defacto method of averaging variables/parameters when we need to compute averages of various variables/parameters in deep learning. In addition the inherent simplicity of the code where we use just a single variable & accumulate is another reason.
+
+
+
+=====
+
+Bias correction in exponentially weighted averages:
+
+Bias correction is needed to improve the accuracy of the exponentially weighted average computation during the initial phase of the estimation.
+
+The exponentially weighted average formula from before that we wrote, V@ = beta * V@ + (1 - beta) * @t will not provide accurate estimates in the initial warm up phase of the weighted average computation as shown below,
+
+V0 = 0
+V1 = 0.98 * V0 + (1 - 0.98) * @1
+   = 0.98 * 0 + (0.02) * @1 
+   = 0.02 * @1
+
+Now we see that V1 is not an accurate estimate of the average as its a very small value, similarly,
+
+V2 = 0.98 * V1 + (0.02) * @2
+   = (0.98 * 0.02) * @1 + (0.02) * @2
+   = 0.0196 * @1 + 0.02 * @2
+
+This again is not an accurate estimate of the average of @1 & @2 as again its a very small value.
+
+To correct this bias we add a bias correction term (dividing it by ( 1 - beta ^ t )) & change the exponentially weighted average formula as below,
+
+V@ = ( beta * V@ + (1 - beta) * @t ) / ( 1 - beta ^ t )
+
+With this, V2 now changes as,
+
+V2 = ( 0.0196 * @1 + 0.02 * @2 ) / (1 - 0.98 ^ 2)
+   = ( 0.0196 * @1 + 0.02 * @2 ) / 0.0396
+   
+We see here that the above numerators (0.0196 & 0.02) add up to the denominator term (0.0396) & thereby remove the bias.
+
+So we see that we are performing a weighted average & the bias term now corrects the bias.
+
+We can also see that t increases the term (beta ^ t) approaches zero & hence for larger values the bias term has very little impact (almost divide by 1).
+
+
+
+=====
+
+Gradient descent with momentum:
+
+Momentum or Gradient descent with Momentum is an optimization algorithm that almost always performs better than Batch or Mini-batch Gradient descent.
+
+The idea here is to compute the exponentially weighted average of the gradients/derivatives & use the computed exponentially weighted average gradients/derivatives to update the parameters/weights.
+
+Below is the intuition on why this performs better than batch or mini-batch gradient descent,
+
+Given a cost function that we need to optimize when we perform gradient descent we start at some value & take multiple gradient descent steps, oscillating back & forth in the process to reach the global optima/minima.
+
+These oscillations slow down gradient descent & is one of the reasons we use a smaller learning rate. Since if we use a bigger learning rate we might end up oscillating widely & diverge instead of converging. Hence we are forced to use a smaller learning rate & this slows down gradient descent since more tiny gradient descent steps are needed to find the minimum.
+
+Another way to look at it is that we need slower learning in the vertical direction & faster learning in the horizontal direction when looking at the contours of the cost function.
+
+Here is how Gradient descent with Momentum does this by computing & using the exponentially weighted average of the gradients, namely matrix VdW & vector Vdb (ignoring the layers L),
+
+// Initialize..
+VdW = np.zeros(W.shape[0], W.shape[1])
+Vdb = np.zeros(b.shape[0], 1)
+
+// For each gradient descent step/iteration t
+for t in range(0, T) {
+	
+	// Compute the gradients/derivatives dW & db for the current mini-batch/batch
+	dW = ..
+	db = ..
+	
+	// Compute the exponentially weighted average of the gradients/derivatives
+	VdW = beta * VdW + (1 - beta) * dW
+	Vdb = beta * Vdb + (1 - beta) * db
+	
+	// Update the parameters/weights using the exponentially weighted average of the gradients/derivatives instead of the gradients/derivatives computed in the current iteration
+	W = W - alpha * VdW
+	b = b - alpha * Vdb
+}
+
+The effect of the above is that we take much smoother steps/path to the minimum.
+
+What happens here is, after a few iterations as we compute & use the exponentially weighted average of the gradients the oscillations in the vertical direction are averaged out to be closer to zero. So in the vertical direction where we want slower learning the positive & negative values are averaged & move close to zero while in the horizontal direction since all the gradients are pointing to the right their average is still a large value. So after a few iterations with momentum we see that gradient descent takes steps with smaller oscillations in the vertical direction & more directed in the horizontal direction towards the minimum. This results in a smooth, more direct path to the minimum that dampens out the oscillations & results in faster learning.
+
+Implementation Details:
+
+With momentum, we have two hyper parameters to tune, the learning rate alpha & the exponentially weighted average control parameter beta.
+	- beta = 0.9 which corresponds to averaging over 10 iterations of gradients/derivatives is usually optimal for most cases.
+	- beta can be tuned with the dev set if needed.
+
+If we need to perform bias correction we can do so by doing,
+
+VdW = VdW / (1 - beta ^ t)
+Vdb = Vdb / (1 - beta ^ t)
+
+However bias correction is rarely done with momentum since with just about 10 iterations we start to have non-biased estimates for the averages.
+
+There is variant implementation of momentum that does away with the (1 - beta) term/coefficient in the right. Both can be used & both would work well with 0.9 value for beta. The difference is that with this variant the resulting weighted average of the gradients is scaled by a factor of 1 / (1 - beta) & this would then need the learning rate alpha to be changed accordingly by a factor of 1 / (1 - beta).
+
+However this is less preferred since its less intuitive & if we end up tuning beta this will result in dW & db scaling accordingly and needing alpha to be tuned again.
+

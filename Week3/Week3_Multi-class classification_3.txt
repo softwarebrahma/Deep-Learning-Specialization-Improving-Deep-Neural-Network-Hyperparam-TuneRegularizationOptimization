@@ -1,0 +1,92 @@
+
+Softmax Regression:
+
+Multi class classifiers are used when we need to classify more than two classes of data or more generically C classes. When a NN is used to perform multi class classification we want the output layer to output C output units (n[L] = C & AL is (n[L], 1)) corresponding to the C classes being classified with each predicting the probability of the input being its corresponding class. 
+
+So each output unit outputs P(c | x), where c = {1..C}. Since these are all probabilities they must all sum up to 1.
+
+The standard method of implementing multi class classification in NN to output probabilities for the C classes being classified in the output layer uses a layer called Softmax layer in the output layer of the NN.
+
+The Softmax layer is applied after the linear activation part of the output layer, basically after computing ZL, whereby we apply a Softmax activation function to ZL to get the predictions, AL = Yhat.
+
+The Softmax activation function essentially involved taking the element wise exponentiation of ZL & normalizing to sum up to 1 by dividing by the sum of the element wise exponentiation.
+
+Below is the math & formula,
+
+ZL = WL * AL-1 + bL
+
+Softmax Activation Function ( AL = gL(ZL) ):
+
+t = e ^ ZL	or in python, t = np.power(np.e, ZL)
+
+	- Element wise exponentiation of the elements of ZL
+
+AL = np.power(np.e, ZL) / np.sum(t, axis=0, keepdims=True)
+
+	- Where every element AL(i) in AL is basically, t(i) / np.sum(t, axis=0, keepdims=True)
+	- Normalizing to sum up to 1
+
+	
+The AL thus computed becomes the estimate Yhat, where each unit AL(i) provides the probability of the input being its corresponding class, all summing up to 1.
+
+One interesting aspect of the above Softmax activation function is that it accepts a vector as input & also outputs a vector of the same dimensions. Most of the other activation functions like sigmoid, RELU, etc accept single, real valued number inputs & output a real valued number. This is because it needs to be normalize using the vector elements & return the normalized values.
+
+The decision boundary is linear (When plotted without hidden units with just the Softmax activation) & can be used to represent decision boundaries for many large values of C.
+
+So we can see that Softmax Regression is just a generalization of the Logistic Regression with linear decision boundaries but with more than two classes. But when used in NNs with many hidden units/layers we can fit more complex non-linear decision boundaries to classify the different classes.
+
+
+======
+
+Training a softmax classifier:
+
+The key thing to remember is that Softmax Regression is a generalization of Logistic Regression to multiple or C classes (instead of just two classes as with Logistic Regression).
+
+One observation when using the Softmax activation function ( Yhat = AL = gL(ZL) ) is that the larger the value of a unit in ZL the larger is its corresponding probability value post applying Softmax in AL / Yhat. This is why its called Softmax versus Hardmax which involves simply taking the unit with the largest value in ZL & setting its corresponding probability value to 1 in AL while setting all others to zero (since these are probabilities). With Softmax we perform a more gentler mapping from ZL to AL.
+
+So Softmax Regression generalizes Logistic Regression to C classes. It can shown that when applying Softmax with just 2 classes (C = 2) Softmax Regression reduces to Logistic Regression.
+
+Now to apply Softmax Regression to a NN (output layer) we need to first define the Loss & hence the Cost Function J,
+
+The Loss function for one example can be defined as,
+
+L(yhat, y) = - np.sum( np.multiply( y, np.log(yhat) ) )
+
+	- where 
+		- yhat is the output/prediction vector for one example & y is the corresponding truth label vector
+		- the outer sum is to sum over all the C values in the yhat & y vectors.
+		
+The intuition in the loss function formula above is that in order to reduce the loss (or improve prediction) yhat output unit value corresponding to the actual or ground truth class should be as big as possible (so that the cost is as low as possible). 
+
+Essentially this is a form of Maximum Likelihood Estimation in Statistics.
+
+The intuition can be clearly seen by taking an example,
+
+Let's say the truth vector y = [0; 1; 0; 0] & the output/prediction a = yhat = [0.3; 0.2; 0.1; 0.4]
+
+Now using the above formula the only unit that will impact the Loss is unit 2 corresponding to the actual class for which y is 1. For others since the corresponding y value is zero the element wise product of the rest of the units with yhat will be zero. So,
+
+L = - ( 0 + y(2) * log(yhat(2)) + 0 + 0 )	=	- ( log(yhat(2)) )
+
+Since with gradient descent we try to lower the Loss L, the only way Loss L can be lower is if the yhat unit value corresponding to the actual class (for which y unit value is 1) is larger/higher/bigger.
+
+
+The Cost Function for all examples therefore can be defined expectedly as the average loss over the m training examples as shown below,
+
+J(W, b) = ( 1 / m ) * np.sum( L(yhat, y) )
+
+	- where
+		- the sum is the sum of the loss over all m training examples.
+		
+
+Once we define the Cost Function we now need to define the derivative of the Cost Function. The derivative is given below,
+
+dJ/dZL or simply dZL = ( Yhat - Y )
+	- Will have the same dimensions as ZL which (C, m)
+
+With the Cost Function we can perform forward propagation to compute AL and hence Yhat & with that we can compute the Cost J.
+
+With the derivative of the Cost Function we can then perform backward propagation and compute all the partial derivatives for the parameters/weights in all layers & update them in the gradient descent step.
+
+With most programming frameworks like Tensorflow we don't need to compute derivative directly & only need to define the forward prop & the backward prop will automatically be taken cared by the frameworks.
+

@@ -1,0 +1,167 @@
+
+Gradient Descent:
+
+A simple optimization method in machine learning is gradient descent (GD). When you take gradient steps with respect to all m examples on each step, it is also called Batch Gradient Descent.
+
+The gradient descent rule is, for  l = 1,...,L :
+
+W[l] = W[l] − α dW[l] 
+b[l] = b[l] − α db[l]
+
+A variant of this is Stochastic Gradient Descent (SGD), which is equivalent to mini-batch gradient descent where each mini-batch has just 1 example. The update rule from batch gradient descent doesn't change. What changes is that you would be computing gradients on just one training example at a time, rather than on the whole training set.
+
+The code examples below illustrate the difference between stochastic gradient descent and (batch) gradient descent.
+
+(Batch) Gradient Descent:
+X = data_input
+Y = labels
+parameters = initialize_parameters(layers_dims)
+for i in range(0, num_iterations):
+    # Forward propagation
+    a, caches = forward_propagation(X, parameters)
+    # Compute cost.
+    cost = compute_cost(a, Y)
+    # Backward propagation.
+    grads = backward_propagation(a, caches, parameters)
+    # Update parameters.
+    parameters = update_parameters(parameters, grads)
+	
+
+Stochastic Gradient Descent:
+X = data_input
+Y = labels
+parameters = initialize_parameters(layers_dims)
+for i in range(0, num_iterations):
+    for j in range(0, m):
+        # Forward propagation
+        a, caches = forward_propagation(X[:,j], parameters)
+        # Compute cost
+        cost = compute_cost(a, Y[:,j])
+        # Backward propagation
+        grads = backward_propagation(a, caches, parameters)
+        # Update parameters.
+        parameters = update_parameters(parameters, grads)
+		
+		
+
+In Stochastic Gradient Descent, you use only 1 training example before updating the gradients. When the training set is large, SGD can be faster. But the parameters will "oscillate" toward the minimum rather than converge smoothly. SGD leads to many oscillations to reach convergence. But each step is a lot faster to compute for SGD than for GD, as it uses only one training example (vs. the whole batch for GD).
+
+Note also that implementing SGD requires 3 for-loops in total:
+
+Over the number of iterations
+Over the  mm  training examples
+Over the layers (to update all parameters, from  (W[1],b[1]) to (W[L],b[L]))
+
+In practice, you'll often get faster results if you do not use neither the whole training set, nor only one training example, to perform each update. Mini-batch gradient descent uses an intermediate number of examples for each step. With mini-batch gradient descent, you loop over the mini-batches instead of looping over individual training examples. Using mini-batches in your optimization algorithm often leads to faster optimization.
+
+
+What you should remember:
+
+	- The difference between gradient descent, mini-batch gradient descent and stochastic gradient descent is the number of examples you use to perform one update step.
+	- You have to tune a learning rate hyperparameter α .
+	- With a well-turned mini-batch size, usually it outperforms either gradient descent or stochastic gradient descent (particularly when the training set is large).
+
+
+======
+
+Mini-Batch Gradient descent:
+
+To build mini-batches from the training set (X, Y) there are two steps:
+
+1. Shuffle: Create a shuffled version of the training set (X, Y). Each column of X and Y represents a training example. Note that the random shuffling is done synchronously between X and Y. Such that after the shuffling the ith column of X is the example corresponding to the  ith label in Y. The shuffling step ensures that examples will be split randomly into different mini-batches.
+
+2. Partition: Partition the shuffled (X, Y) into mini-batches of size mini_batch_size (say 64). Note that the number of training examples is not always divisible by mini_batch_size. The last mini batch might be smaller (reminder of the division by the mini_batch_size), but you don't need to worry about this.
+
+If the total number of examples is not a multiple of mini_batch_size=64 then there will be  [ m / mini_batch_size ] mini-batches with a full 64 examples, and the number of examples in the final mini-batch will be 
+( m − mini_batch_size × [ m / mini_batch_size ] ).
+
+
+What you should remember:
+
+	- Shuffling and Partitioning are the two steps required to build mini-batches
+	
+	- Powers of two are often chosen to be the mini-batch size, e.g., 16, 32, 64, 128.
+
+
+======
+
+Momentum:
+
+Because mini-batch gradient descent makes a parameter update after seeing just a subset of examples, the direction of the update has some variance, and so the path taken by mini-batch gradient descent will "oscillate" toward convergence. Using momentum can reduce these oscillations.
+
+Momentum takes into account the past gradients to smooth out the update. We will store the 'direction' of the previous gradients in the variable v. Formally, this will be the exponentially weighted average of the gradient on previous steps. You can also think of v  as the "velocity" of a ball rolling downhill, building up speed (and momentum) according to the direction of the gradient/slope of the hill.
+
+The red arrows shows the direction taken by one step of mini-batch gradient descent with momentum. The blue points show the direction of the gradient (with respect to the current mini-batch) on each step. Rather than just following the gradient, we let the gradient influence v and then take a step in the direction of v.
+
+Now, implement the parameters update with momentum. The momentum update rule is, for  l=1,...,L :
+ 
+vdW[l] = βvdW[l] + (1−β)dW[l]
+W[l] = W[l] − αvdW[l]
+ 
+vdb[l] = βvdb[l] + (1−β)db[l]
+b[l] = b[l] − αvdb[l]
+ 
+where L is the number of layers, β is the momentum hyperparameter and α is the learning rate hyperparameter.
+
+Note that:
+	- The velocity is initialized with zeros. So the algorithm will take a few iterations to "build up" velocity and start to take bigger steps.
+	- If β=0, then this just becomes standard gradient descent without momentum.
+
+How do you choose β?
+	- The larger the momentum β is, the smoother the update because the more we take the past gradients into account. But if β is too big, it could also smooth out the updates too much.
+	- Common values for β range from 0.8 to 0.999. If you don't feel inclined to tune this, β=0.9 is often a reasonable default.
+	- Tuning the optimal β for your model might need trying several values to see what works best in term of reducing the value of the cost function J.
+
+
+What you should remember:
+
+	- Momentum takes past gradients into account to smooth out the steps of gradient descent. It can be applied with batch gradient descent, mini-batch gradient descent or stochastic gradient descent.
+	
+	- You have to tune a momentum hyperparameter β and a learning rate α.
+
+
+=======
+
+Adam:
+
+Adam is one of the most effective optimization algorithms for training neural networks. It combines ideas from RMSProp (described in lecture) and Momentum.
+
+How does Adam work?
+
+	- It calculates an exponentially weighted average of past gradients, and stores it in variables  v  (before bias correction) and  vcorrected  (with bias correction).
+
+	- It calculates an exponentially weighted average of the squares of the past gradients, and stores it in variables  s  (before bias correction) and  scorrected  (with bias correction).
+	
+	- It updates parameters in a direction based on combining information from "1" and "2".
+
+The update rule is, for  l=1,...,L :
+
+vdW[l] = β1vdW[l] + (1−β1)∂J/∂W[l]
+vcorrecteddW[l] = vdW[l] / 1−(β1)^t
+
+sdW[l] = β2sdW[l] + (1−β2)(∂J/∂W[l])^2
+scorrecteddW[l] = sdW[l] / 1−(β2)^t
+
+W[l] = W[l] − αvcorrecteddW[l] / √scorrecteddW[l] + ε
+ 
+where:
+
+	- t counts the number of steps taken of Adam
+	- L is the number of layers
+	- β1  and  β2  are hyperparameters that control the two exponentially weighted averages.
+	- α  is the learning rate
+	- ε  is a very small number to avoid dividing by zero
+
+As usual, we will store all parameters in the parameters dictionary.
+
+
+The huge oscillations you may see in the cost come from the fact that some minibatches are more difficult than others for the optimization algorithm.
+
+Adam on the other hand, clearly outperforms mini-batch gradient descent and Momentum. If you run the model for more epochs on this simple dataset, all three methods will lead to very good results. However, you've seen that Adam converges a lot faster.
+
+Some advantages of Adam include:
+
+	- Relatively low memory requirements (though higher than gradient descent and gradient descent with momentum)
+	
+	- Usually works well even with little tuning of hyperparameters (except α )
+

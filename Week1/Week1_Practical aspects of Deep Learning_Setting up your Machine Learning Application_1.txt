@@ -1,0 +1,94 @@
+
+Train / Dev / Test sets:
+
+Developing an model requires making choices about a lot of hyperparameters like,
+	- # of hidden layers
+	- # of activation units
+	- Choice of activation functions
+	- Learning rate
+	- Number of gradient descent iterations, etc.
+
+Often, intuitions about hyperparameters choices from one domain do not carry into another as they depend on things like,
+	- Data set size
+	- # of input features
+	- Choice of compute whether CPU or GPU
+	- If GPU, then what choice, etc
+
+Hence applied ML is a highly iterative process needing an Idea, Code & Experiment cycle to find the optimal hyperparameters. So for effective & rapid development we need this iterative process to be efficient.
+
+Setting up the data as Training, Development (a.k.a Hold out or Cross Validation) & Test set is essential to make the iterative learning process efficient.
+
+Traditionally a split of 60%, 20%, 20% for Train, Dev & Test was optimal. But in the big data era with millions of data records this is no longer recommended.
+
+For Big data a split like 98%, 1%, 1% for Train, Dev & Test is optimal & efficient. Even a split like 99.5%, 0.4%, 0.1% for Train, Dev & Test may also be good when the data set is in the millions.
+
+For Big Data use cases, increasingly there is a mismatch between the Training & Test sets where the training set is much larger & come from a different distribution than the Development & Test sets.
+	- Rule of thumb in such cases is to make sure that the Development & Test sets come from the same distribution. In other words the Dev set needs to come from the same distribution as the Test set.
+	
+Also it may be okay to NOT have a Test set (as long as we have a Development set) if an un-biased estimate of the performance of the model is not needed.
+	- In such cases teams generally refer to the Development set as the Test set although this is strictly not correct.
+	- The key thing here is that we are fitting the model against the Dev set & not a separate Test set.
+	
+In summary, setting up the data set as Training, Development & Test sets helps to,
+	- Quickly iterate through the idea-code-experiment cycle & fine tune the optimal hyperparameters for the model.
+	- Effectively measure the Bias & Variance of the model & help tune the hyperparameters more efficiently.
+
+=====
+
+Bias / Variance:
+
+In the big data/deep learning space, there will be less emphasis on Bias-Variance trade off, instead we will focus on both Bias & Variance individually.
+
+For a dataset with low/small Optimal or Bayes error with training & development sets coming from the same distribution there are two key metrics/numbers to look at to diagnose Bias & Variance of a model,
+	- Training set error
+	- Development set error
+	
+For example if, 
+	- Training is 1% & Dev is 11% - Then the algorithm has high variance, since it doesn't generalize to the dev set well & overfits the training set.
+	- Training is 15% & Dev is 16% - Then the algorithm has high bias (given the Bayes error is ~= 0%) since it doesn't fit even the training set well & underfits it though it generalizes reasonably well to the dev set.
+	- Training is 15% & Dev  is 30% - Then the algorithm has both high bias & high variance since not only does it underfit the training set but also does not generalize well to the dev set.
+	- Training is 0.5% & Dev is 1% - Then the algorithm has low bias & low variance since it fits the training set well & also generalizes to the dev set well.
+	
+In summary, 
+	- By measuring the Training set error (and comparing with the Bayes error) one can get a sense of the bias of the algorithm (how well its fitting)
+	- By measuring the Development set error & how much it increases from the Training set error one can get a sense of the variance of the algorithm (how well its generalizing).
+	- Its possible to observe high bias & high variance problems when dealing with data sets with lots of features or dimensions (high dimensional feature set).
+	- The subtlety here is that if the Bayes error itself is large (eg: poor resolution images for cat classification) & no model fits well then a more nuanced measuring is necessary.
+	
+=====
+
+Basic Recipe for Machine Learning:
+
+Below is a systematic way to organize/structure deep learning so as it efficiently fit a model.
+
+After having trained an initial model one should ask the question or check if the model has High Bias problem, wherein it underfits the training data. The way to do this is to look at the Training set performance (training set error). If we do find a bias problem then we can keep trying one or more of the below actions until we get a model that fits or overfits the training set. This is usually the case as long as the data set has a reasonably low Bayes error.
+	- Train a bigger neural network - With more hidden layers or hidden units
+	- Train longer - Run gradient descent iterations longer or try one of the advanced optimization algorithms
+	- Try searching for different Neural Network Architectures to see if we can find one that better suits the problem
+	
+Training a bigger network almost always helps, training longer doesn't always help but doesn't hurt either. Trying different NN architectures may or may not help, but worth trying.
+
+Once we get a model that performs well in the Training set with low bias we can then ask the question or check if the model has High Variance problem, wherein it overfits the training data. The way to measure this is to look at the Development set performance (dev set error). If we do find a variance problem we can keep taking one of the below actions & going back to step 1 until we get a model that has low variance & generalizes well to the Dev set at which point we are done.
+	- Get & Train on more data.
+	- Regularization to reduce overfitting
+	- Try searching for different Neural Network Architectures to see if we can find one that better suits the problem
+	
+Best way to reduce variance is to get & train on more data. Regularization also helps. Trying different NN architectures may or may not help, but worth trying.
+
+Key observations with this recipe are,
+
+	1. Depending on whether one has a high bias or a high variance problem the subset of steps/actions to take changes. For eg: For a high bias problem, getting more data is not going to help & the above two step recipe avoids this.
+	2. Compared to the pre-deep learning, big data era where there was the notion of Bias-Variance trade-off where reducing one affects/increases the other, in the deep learning, big data space with the tools available using the above two step recipe its possible to reduce both Bias & Variance independently without affecting each other.
+
+Reason 2, is one of the main reasons Deep Learning has become very useful for supervised learning problems with its ability to reduce bias & variance independently.
+
+	- As long as one can keep training bigger networks & keep training on more data its possible to reduce bias & variance if one can do these two.
+
+	- Training a bigger network almost always reduces Bias without affecting Variance as long as the model is regularized properly.
+
+	- Training on more data always reduces variance without affecting bias much.
+
+The only real cost is the computational time.
+
+Although regularization does have a little bit of Bias-Variance trade-off where bias is increased little bit for lower variance, it doesn't affect much as long as we train a big enough model.
+

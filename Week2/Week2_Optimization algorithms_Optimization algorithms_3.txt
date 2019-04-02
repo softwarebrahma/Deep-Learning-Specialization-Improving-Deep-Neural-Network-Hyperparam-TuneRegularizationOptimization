@@ -1,0 +1,105 @@
+
+RMSprop:
+
+RMSprop is another optimization algorithm like Momentum that speeds up gradient descent. RMS stands for Root Mean Squared.
+
+As we saw with momentum the back & forth oscillations in the gradient descent steps forces the use of smaller learning rate & this causes learning to need more iterations to converge thereby slowing down learning.
+
+Similar to momentum, the key idea in RMSprop is to dampen the oscillations in the dimensions (directions) with oscillations so that gradient descent can take bigger & smoother steps using bigger learning rate and converge sooner (slow down learning in the dimensions/directions with oscillations & speed up or not slow down the others).
+
+This is achieved by computing the exponentially weighted average of the gradients using the squares of the gradients & then dividing the gradients by the square root of the computed exponentially weighted average when using it to update the parameters/weights.
+
+The idea is that for gradients that have dimensions with oscillations the exponentially weighted average for these dimensions will be relatively higher (a large value) when compared to the other dimensions & when they are used in the denominator to divide the gradients when updating the parameters/weights this results in dampening the oscillations or slowing the learning for these dimensions with oscillations when compared to the other dimensions. This then allows us to use a bigger learning rate & converge sooner.
+
+The intuition behind can be understood by taking a parameter/weight with just 2 dimensions say w & b. Let b the vertical dimension with oscillations & w be the horizontal dimension. But this really can be any dimension in the high dimensional space of the gradient matrix/vectors dW/db (say w1, w2 can be vertical ones with oscillations that we need to dampen & w3, w4 & b might be horizontal directions).
+
+Below is how it is implemented. We will use SdW & Sdb for the exponentially weighted average computed with RMSprop & beta2 for the weighted average control parameter,
+
+// Initialize..
+VdW = np.zeros(W.shape[0], W.shape[1])
+Vdb = np.zeros(b.shape[0], 1)
+
+// For each gradient descent step/iteration t
+for t in range(0, T) {
+	
+	// Compute the gradients/derivatives dW & db for the current mini-batch/batch
+	dW = ..
+	db = ..
+	
+	// Compute the exponentially weighted average of the gradients/derivatives using the squares of the gradients/derivatives (Basically an element wise square of dW & db)
+	SdW = beta2 * SdW + (1 - beta2) * np.square(dW)
+	Sdb = beta2 * Sdb + (1 - beta2) * np.square(db)
+	
+	// Update the parameters/weights by dividing the gradients by the square root of the exponentially weighted average of the gradients instead of just the gradients computed in the current iteration
+	// The reason we add epsilon in the denominator is to make sure that we get a mathematically correct implementation since if the square root is too small we don't want to end up blowing the division by dividing by zero. epsilon can be a very small value, with 10 ^ -8 being a recommended optimal value.
+	
+	W = W - alpha * ( dW / ( np.sqrt(SdW) + epsilon) )
+	b = b - alpha * ( db / ( np.sqrt(Sdb) + epsilon) )
+	
+}
+
+Since dimension/direction b has oscillations its computed weighted average term Sdb will be larger than SdW. This will then cause the learning to be slower for b than W & thereby dampen the oscillations in b.
+
+So the intuition is that in the dimensions where you're getting oscillations, you end up computing a larger value for the weighted average (because of the squares of the derivatives), and so you end up damping out the directions in which there are these oscillations.
+
+We call this Root Mean Squared as we do the square of the derivatives when computing the weighted average & then divide the gradients by the square root of the computed average.
+
+The net result is that the oscillations in the gradient descent are dampened & it takes more smoother steps to converge.
+
+
+
+=====
+
+Adam optimization algorithm:
+
+Adam optimization algorithm combines Gradient Descent with Momentum & Gradient Descent with RMSprop algorithms & achieves a high degree of efficiency by combining the effects of both Momentum & RMSprop. The algorithm therefore is the preferred choice with many different neural networks with varying neural network architectures.
+
+Below is the algorithm,
+
+// Initialize the exponentially weighted moving averages from both Momentum (computed with gradients/derivatives) & RMSprop (computed with the square of the gradients/derivatives)
+VdW = np.zeros((W.shape[0], W.shape[1]))
+Vdb = np.zeros((b.shape[0], 1))
+SdW = np.zeros((W.shape[0], W.shape[1]))
+Sdb = np.zeros((b.shape[0], 1))
+
+// For each gradient descent step/iteration t in T
+for(t in range(0, T)) {
+
+	// Compute the gradients/derivatives dW & db for the current mini-batch/batch. This algorithm is usually used with Mini-batch gradient descent.
+	dW = ..
+	db = ..
+	
+	// Compute the exponentially weighted moving averages from both Momentum & RMSprop
+	VdW = beta1 * VdW + (1 - beta1) * dW
+	Vdb = beta1 * Vdb + (1 - beta1) * db
+	SdW = beta2 * SdW + (1 - beta2) * np.square(dW)
+	Sdb = beta2 * Sdb + (1 - beta2) * np.square(db)
+	
+	// Perform Bias Correction on the computed exponentially weighted moving averages from both Momentum & RMSprop. Bias correction is usually always performed with Adam optimization.
+	VdWcorrected = VdW / ( 1 - beta1 ^ t )
+	Vdbcorrected = Vdb / ( 1 - beta1 ^ t )
+	SdWcorrected = SdW / ( 1 - beta2 ^ t )
+	Sdbcorrected = Sdb / ( 1 - beta2 ^ t )
+	
+	// Update the parameters using both the exponentially weighted moving averages from both Momentum & RMSprop
+	W = W - alpha * ( VdWcorrected / ( np.sqrt(SdWcorrected) + epsilon ) )
+	b = b - alpha * ( Vdbcorrected / ( np.sqrt(Sdbcorrected) + epsilon ) )
+
+}
+
+The last step combines the effects of Momentum & RMSprop in dampening out oscillations & helps speed up the optimization by allowing higher values for learning rate.
+
+The hyperparameters involved here are alpha, beta1 & beta2. alpha is the only hyperparameter that needs to be tuned. beta1 & beta2 can be tuned but may not be needed. epsilon is almost never tuned as it has no effect. 
+
+The recommended optimal value choices for these are as below,
+
+alpha - Needs to be tuned.
+
+beta1 = 0.9		(controls the exponentially weighted moving averages of the gradients/derivatives dW & db from Momentum)
+
+beta2 = 0.999	(controls the exponentially weighted moving averages of the squares of the gradients/derivatives dW^2 & db^2 from RMSprop)
+
+epsilon = 10 ^ -8
+
+Adam stands for Adaptive Moment Estimation. The name comes from the mean computed with gradients/derivatives dW & db which is the first moment & the one computed with the squares which is the second moment.
+

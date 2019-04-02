@@ -1,0 +1,151 @@
+
+Tuning process:
+
+With a lot of hyper parameters to tune we need a systematic way to efficiently search/sample the hyper parameters space to find the values that best optimize the cost on the training or dev sets.
+
+With hyper parameters some are more important than others. Below is their order of importance,
+
+1. Learning Rate, alpha
+2. Regularization Parameter, lambda
+2.5 Momentum term, beta (if using Momentum) -- Default value of 0.9 is usually good & tuning is not necessary.
+2.75 Adam terms beta1, beta2 & epsilon (if using Adam optimization) -- Default values 0.9, 0.999 & 10 ^ -8 are usually good & tuning is not necessary. epsilon never needs to be tuned. 
+3. Mini-batch size
+4. Number of hidden units, #
+5. Number of hidden layers, #
+6. Learning Rate Decay Control parameter, decay_rate
+
+
+Now once we decide to tune a set of hyper parameters we need to a way to choose the set of values (hyper parameter value space) to sample & try (explore) to find the ones that helps us converge better.
+
+In the past we used to sample/organize them systematically in a grid (grid combination) & try the settings/points (corresponding values combination) one by one to pick up one that is most efficient.
+
+In Deep Learning we shouldn't use a Grid instead we should try Random Values. 
+	- This means we sample the settings/points (corresponding values combination) randomly then choose the points at random & try the hyper parameter values on the randomly chosen points.
+
+The reason we need to do this is because, 
+	- It's difficult to know in advance which hyper parameters are going to be important for the optimization problem.
+	- As we saw earlier some hyper parameters are more important than others.
+	
+If we sample from a grid we are constrained on the different values of the hyper parameters that we are sampling (using an extreme example of alpha & epsilon if used in a grid of (5 x 5) we can only sample 5 different values for alpha & since epsilon doesn't have any impact we will get the same result for its 5 different values).
+
+When sampling at random we have the liberty to sample the different hyper parameter values more efficiently (using same example above for the same 25 settings/points we might be able to sample from 20/25 different values of alpha & are more likely to find a good value).
+
+So in deep learning space where we have lots of hyper parameters to tune sampling at random rather than from a grid enables us to more efficiently explore the set of hyper parameter values for the hyper parameters that turn out to be important for the optimization.
+
+
+Optionally, when sampling & tuning hyper parameters we can also implement a Coarse to Fine sampling process. Below is how its done,
+
+Basically we first sample randomly at Coarse grain level & once we find which section(s) in the hyper parameter space that has better values/settings we zoom in & again sample randomly at Fine grain level within these section(s) to find the best values/settings.
+
+In summary,
+	- Sample randomly, Don't use a grid.
+	- Optionally, implement Coarse to Fine sampling process.
+
+	
+=======
+
+Using an appropriate scale to pick hyperparameters:
+
+Sampling hyperparameters to tune at random (randomly) from the range of valid values doesn't mean sampling uniformly at random. Its important to choose/set the appropriate scale for the hyperparameter space against which to explore the valid values.
+
+Sample Uniformly At Random From A Linear Scale:
+
+For some hyperparameters like Number of hidden units, # or Number of hidden layers, # its fine to sample uniformly at random from a linear scale.
+
+For eg: 
+	- For Number of hidden units we can set the valid value range form 50 to 100, in which case we can sample values uniformly at random from a linear scale of values between 50 and 100.
+	- Similarly for Number of hidden layers we can set the valid value range from 2 to 4 & we can sample either uniformly at random against the linear scale of values from 2 to 4 or even use a Grid.
+
+Sample Uniformly At Random From A Logarithmic Scale:
+
+For some hyperparameters like Learning Rate, alpha sampling values uniformly at random from a linear scale would not be correct & will not help converge on the right value.
+
+Lets say the valid value range for alpha is between 0.0001 to 1. Now if we sample from a linear scale we will not be using the resources efficiently & end up sampling 90% of values between 0.1 & 1 and only 10% between 0.0001 & 0.1
+
+What we want instead is to sample uniformly at random from a logarithmic scale so that we choose values uniformly at random between 0.0001 & 0.001, 0.001 & 0.01, 0.01 & 0.1 and 0.1 & 1.
+
+More generically for a given value range if we want to sample values uniformly at random from a logarithmic scale between 10 ^ a and 10 ^b, we need to choose a value uniformly at random between a and b and set the sample to be 10 ^ r. Written as formula,
+
+alpha = 10 ^ r
+
+	Where 
+		- r ranges uniformly at random between [a, b]
+		- a & b define the logarithmic scale 10 ^a and 10 ^ b
+
+So the steps to sample the hyperparameter lambda uniformly at random from a proper logarithmic scale are,
+
+	- From the low value & high value compute log10(low value) & log10(high value) to get a & b respectively.
+	- Sample r uniformly at random but between a and b [a , b](set r to a uniformly randomly generated value between a & b)
+	- Set alpha to 10 ^ r
+
+For above example our low value is 0.0001 & high value is 1. So we compute a & b as below,
+
+a = log(0.0001) = -4
+b = log(1) = 0
+
+To set r to be a value generated uniformly at random but between -4 & 0 we do the below,
+
+r = -4 * np.random.rand()
+
+Now we set alpha as below to uniformly at random from log scale,
+
+alpha = 10 ^ r
+
+
+Sample hyperparameter beta uniformly at random from a logarithmic scale:
+
+Sample from a linear scale is particularly inefficient for the beta hyperparameter that controls the exponentially weighted averages since very small value changes in the value of beta when its very close to 1 can have dramatically different outcomes/results for the algorithm. So its important to efficiently densely choose/sample from values of beta close to 1. This is because of the below formula from before where beta determines how many values we average over by roughly ~= 1 / ( 1 - beta ).
+
+Eg: For beta values not close to 1 say, 0.9000 & 0.9005 both mean averages of over just 10 values. However for values close to 1 say, 0.9990 & 0.9995 they mean very different averages one is over 1000 and the other is over 2000.
+
+As we know the valid values for beta are between 0.9 and 0.999. Again as before if we are to sample from a linear scale we would end up sampling inefficiently & not choosing values close to 1 densely.
+
+One way to sample beta uniformly at random from a logarithmic scale is to sample values of (1 - beta) uniformly at random from a logarithmic scale & then use the below formula to sample beta.
+
+(1 - beta) = 10 ^ r
+
+Which can then be written as,
+
+beta = 1 - 10 ^ r
+
+So valid value range for (1 - beta) is between 0.1 & 0.001.
+
+a = log(0.001) = 10 ^ -3
+
+b = log(0.1) = 10 ^ -1
+
+r = [-3, -1]
+
+beta = 1 - 10 ^ r
+
+
+NOTE:
+Even if we miss choosing a right scale for the hyperparameter when sampling uniformly at random we can still use the Coarse to Fine sampling process to find the optimal values.
+
+
+=====
+
+Hyperparameters tuning in practice: Pandas vs. Caviar:
+
+Deep Learning is used in a variety of Application domains & the intuitions are one application domain does not transfer to another even though there is a lot of healthy cross fertilization between domains (Vision to Speech & NLP, etc).
+
+This applies to hyperparameters settings as-well. Intuitions on hyperparameter settings don't carry or transfer from one application domain to another.
+
+In addition even within a single application domain, say Logistics, intuitions on hyperparameter settings go stale. This is because the algorithm may evolve over time, the data set might change, the compute hardware used by the algorithm might change. All these can influence & cause the tuned hyperparameters to go stale over time.
+
+Hence its recommended to follow the empirical process of Idea-Code-Experiment cycle to periodically re-evaluate/tune the hyperparameters to make sure they are optimize well.
+
+Secondly depending on whether you have a huge data set & limited compute resources your choice of tuning hyperparameter settings by training models may differ.
+
+Baby-Sit a Model:
+
+One approach seen in Computer Vision, Advertising, etc is to Baby Sit a Single Model or a couple or more small number of models.
+	- This is done when you have a huge data set & limited compute resources.
+	- Here you train a model for a some time, then look at the learning curve & depending on its progress change some of the hyperparameter settings & continue training it & keep doing this until you get a good model. You may also train another model in parallel after a few days with a different hyperparameter setting.
+	
+Train Multiple Models in Parallel:
+
+Here we choose multiple different hyperparameter settings & train multiple models in parallel with these different hyperparameter settings & the choose the one which performs the best.
+	- This is usually done when you have a lot of compute resources.
+	- Here again you look at the learning curve computed with cost function or training/dev set error to choose the one that optimizes the best.
+

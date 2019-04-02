@@ -1,0 +1,492 @@
+
+In [1]: import numpy as np
+
+In [2]: x ,theta = 2, 4
+
+In [3]: print(x, theta)
+2 4
+
+In [4]: print(x)
+2
+
+In [5]: print(theta)
+4
+
+In [6]: 
+
+
+====
+
+
+In [1]: import numpy as np
+
+In [2]: x = np.random.randn(2,3)
+
+In [3]: print(x)
+[[ 0.45351294  0.03083882  1.73683482]
+ [ 0.97593379 -0.80259929 -0.94377025]]
+
+In [4]: x = np.random.rand(2,3) * 10
+
+In [5]: print(x)
+[[ 7.03304826  6.03755373  3.32797503]
+ [ 3.40500726  1.34277632  2.08912503]]
+
+In [6]: x = np.round(np.random.rand(2,3) * 10)
+
+In [7]: print(x)
+[[  4.   6.   4.]
+ [  1.   2.  10.]]
+
+In [8]: print(x.reshape(x.shape[0] * x.shape[1]))
+[  4.   6.   4.   1.   2.  10.]
+
+In [9]: print(x.reshape(x.shape[0] * x.shape[1]).shape)
+(6,)
+
+In [10]: print(x.reshape(x.shape[0] * x.shape[1], -1))
+[[  4.]
+ [  6.]
+ [  4.]
+ [  1.]
+ [  2.]
+ [ 10.]]
+
+In [11]: print(x.reshape(x.shape[0] * x.shape[1], -1).shape)
+(6, 1)
+
+In [12]: 
+
+
+
+====
+
+
+In [12]: y = np.array([[12],[13],[14]])
+
+In [13]: print(y)
+[[12]
+ [13]
+ [14]]
+
+In [14]: z = np.append(x,y)
+
+In [15]: print(z)
+[  4.   6.   4.   1.   2.  10.  12.  13.  14.]
+
+In [16]: print(z.shape)
+(9,)
+
+In [17]: 
+
+In [21]: z = np.append(x[:],y[:])
+
+In [22]: print(z)
+[  4.   6.   4.   1.   2.  10.  12.  13.  14.]
+
+In [23]: print(z.shape)
+(9,)
+
+In [24]: z = np.append(x[:,:],y[:,:])
+
+In [25]: print(z.shape)
+(9,)
+
+In [26]: 
+
+In [28]: z = np.append(x, y, axis=0)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+    z = np.append(x, y, axis=0)
+  File "<stdin>", line 5152, in append
+    return concatenate((arr, values), axis=axis)
+ValueError: all the input array dimensions except for the concatenation axis must match exactly
+
+In [29]: print(x)
+[[  4.   6.   4.]
+ [  1.   2.  10.]]
+
+In [30]: print(y)
+[[12]
+ [13]
+ [14]]
+
+In [31]: z = np.append(x.reshape(x.shape[0] * x.shape[1], -1), y, axis=0)
+
+In [32]: print(z)
+[[  4.]
+ [  6.]
+ [  4.]
+ [  1.]
+ [  2.]
+ [ 10.]
+ [ 12.]
+ [ 13.]
+ [ 14.]]
+
+In [33]: print(z.shape)
+(9, 1)
+
+In [34]: 
+
+In [37]: np.reshape(x, (x.shape[0] * x.shape[1], -1))
+Out[37]: 
+array([[  4.],
+       [  6.],
+       [  4.],
+       [  1.],
+       [  2.],
+       [ 10.]])
+
+In [38]: 
+
+
+
+====
+
+In [1]: import numpy as np
+
+In [2]: x = np.round(np.random.rand(2,3) * 10)
+
+In [3]: print(x)
+[[ 9.  9.  2.]
+ [ 0.  4.  7.]]
+
+In [4]: y = np.copy(x)
+
+In [5]: print(y)
+[[ 9.  9.  2.]
+ [ 0.  4.  7.]]
+
+In [6]: 
+
+
+
+====
+
+
+In [7]: print(x)
+[[ 9.  9.  2.]
+ [ 0.  4.  7.]]
+
+In [8]: a = np.array([1, 2, 3]) 
+
+In [9]: print(a)
+[1 2 3]
+
+In [10]: print(a.shape)
+(3,)
+
+In [11]: print(a[1][0])
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+    print(a[1][0])
+IndexError: invalid index to scalar variable.
+
+In [12]: print(x[1][0])
+0.0
+
+In [13]: print(x[0][0])
+9.0
+
+In [14]: print(x[1][1])
+4.0
+
+In [15]: print(x[0][0])
+9.0
+
+In [16]: print(x[0][1])
+9.0
+
+In [18]: print(x[0][2])
+2.0
+
+In [19]: print(x[0][3])
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+    print(x[0][3])
+IndexError: index 3 is out of bounds for axis 0 with size 3
+
+In [20]: print(x[2][0])
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+    print(x[2][0])
+IndexError: index 2 is out of bounds for axis 0 with size 2
+
+In [21]: 
+
+
+==
+
+In [23]: a = np.array([[1], [2], [3]])
+
+In [24]: print(a)
+[[1]
+ [2]
+ [3]]
+
+In [25]: print(a.shape)
+(3, 1)
+
+In [26]: a[0,0] = 2
+
+In [27]: a[0,1] = 2
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+    a[0,1] = 2
+IndexError: index 1 is out of bounds for axis 1 with size 1
+
+In [28]: print(a)
+[[2]
+ [2]
+ [3]]
+
+In [29]: a[1,0] = 3
+
+In [30]: a[2,0] = 4
+
+In [31]: print(a)
+[[2]
+ [3]
+ [4]]
+
+In [32]: 
+
+In [32]: a[3,0] = 4
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+    a[3,0] = 4
+IndexError: index 3 is out of bounds for axis 0 with size 3
+
+In [33]: 
+
+In [33]: a[2][0] = 16
+
+In [34]: print(a)
+[[ 2]
+ [ 3]
+ [16]]
+
+In [35]: 
+
+In [36]: 
+
+In [36]: a[2] = 32
+
+In [37]: print(a)
+[[ 2]
+ [ 3]
+ [32]]
+
+In [38]: 
+
+
+
+====
+
+In [36]: np.reshape?
+Signature: np.reshape(a, newshape, order='C')
+Docstring:
+Gives a new shape to an array without changing its data.
+
+Parameters
+----------
+a : array_like
+    Array to be reshaped.
+newshape : int or tuple of ints
+    The new shape should be compatible with the original shape. If
+    an integer, then the result will be a 1-D array of that length.
+    One shape dimension can be -1. In this case, the value is
+    inferred from the length of the array and remaining dimensions.
+order : {'C', 'F', 'A'}, optional
+    Read the elements of `a` using this index order, and place the
+    elements into the reshaped array using this index order.  'C'
+    means to read / write the elements using C-like index order,
+    with the last axis index changing fastest, back to the first
+    axis index changing slowest. 'F' means to read / write the
+    elements using Fortran-like index order, with the first index
+    changing fastest, and the last index changing slowest. Note that
+    the 'C' and 'F' options take no account of the memory layout of
+    the underlying array, and only refer to the order of indexing.
+    'A' means to read / write the elements in Fortran-like index
+    order if `a` is Fortran *contiguous* in memory, C-like order
+    otherwise.
+
+Returns
+-------
+reshaped_array : ndarray
+    This will be a new view object if possible; otherwise, it will
+    be a copy.  Note there is no guarantee of the *memory layout* (C- or
+    Fortran- contiguous) of the returned array.
+
+See Also
+--------
+ndarray.reshape : Equivalent method.
+
+Notes
+-----
+It is not always possible to change the shape of an array without
+copying the data. If you want an error to be raise if the data is copied,
+you should assign the new shape to the shape attribute of the array::
+
+ >>> a = np.zeros((10, 2))
+ # A transpose make the array non-contiguous
+ >>> b = a.T
+ # Taking a view makes it possible to modify the shape without modifying
+ # the initial object.
+ >>> c = b.view()
+ >>> c.shape = (20)
+ AttributeError: incompatible shape for a non-contiguous array
+
+The `order` keyword gives the index ordering both for *fetching* the values
+from `a`, and then *placing* the values into the output array.
+For example, let's say you have an array:
+
+>>> a = np.arange(6).reshape((3, 2))
+>>> a
+array([[0, 1],
+       [2, 3],
+       [4, 5]])
+
+You can think of reshaping as first raveling the array (using the given
+index order), then inserting the elements from the raveled array into the
+new array using the same kind of index ordering as was used for the
+raveling.
+
+>>> np.reshape(a, (2, 3)) # C-like index ordering
+array([[0, 1, 2],
+       [3, 4, 5]])
+>>> np.reshape(np.ravel(a), (2, 3)) # equivalent to C ravel then C reshape
+array([[0, 1, 2],
+       [3, 4, 5]])
+>>> np.reshape(a, (2, 3), order='F') # Fortran-like index ordering
+array([[0, 4, 3],
+       [2, 1, 5]])
+>>> np.reshape(np.ravel(a, order='F'), (2, 3), order='F')
+array([[0, 4, 3],
+       [2, 1, 5]])
+
+Examples
+--------
+>>> a = np.array([[1,2,3], [4,5,6]])
+>>> np.reshape(a, 6)
+array([1, 2, 3, 4, 5, 6])
+>>> np.reshape(a, 6, order='F')
+array([1, 4, 2, 5, 3, 6])
+
+>>> np.reshape(a, (3,-1))       # the unspecified value is inferred to be 2
+array([[1, 2],
+       [3, 4],
+       [5, 6]])
+File:      /var/lib/python/site-packages/numpy/core/fromnumeric.py
+Type:      function
+
+In [37]: 
+
+
+==
+
+
+In [27]: np.append?
+... 
+Signature: np.append(arr, values, axis=None)
+Docstring:
+Append values to the end of an array.
+
+Parameters
+----------
+arr : array_like
+    Values are appended to a copy of this array.
+values : array_like
+    These values are appended to a copy of `arr`.  It must be of the
+    correct shape (the same shape as `arr`, excluding `axis`).  If
+    `axis` is not specified, `values` can be any shape and will be
+    flattened before use.
+axis : int, optional
+    The axis along which `values` are appended.  If `axis` is not
+    given, both `arr` and `values` are flattened before use.
+
+Returns
+-------
+append : ndarray
+    A copy of `arr` with `values` appended to `axis`.  Note that
+    `append` does not occur in-place: a new array is allocated and
+    filled.  If `axis` is None, `out` is a flattened array.
+
+See Also
+--------
+insert : Insert elements into an array.
+delete : Delete elements from an array.
+
+Examples
+--------
+>>> np.append([1, 2, 3], [[4, 5, 6], [7, 8, 9]])
+array([1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+When `axis` is specified, `values` must have the correct shape.
+
+>>> np.append([[1, 2, 3], [4, 5, 6]], [[7, 8, 9]], axis=0)
+array([[1, 2, 3],
+       [4, 5, 6],
+       [7, 8, 9]])
+>>> np.append([[1, 2, 3], [4, 5, 6]], [7, 8, 9], axis=0)
+Traceback (most recent call last):
+...
+ValueError: arrays must have same number of dimensions
+File:      /var/lib/python/site-packages/numpy/lib/function_base.py
+Type:      function
+
+In [28]: 
+
+
+====
+
+In [6]: np.copy?
+Signature: np.copy(a, order='K')
+Docstring:
+Return an array copy of the given object.
+
+Parameters
+----------
+a : array_like
+    Input data.
+order : {'C', 'F', 'A', 'K'}, optional
+    Controls the memory layout of the copy. 'C' means C-order,
+    'F' means F-order, 'A' means 'F' if `a` is Fortran contiguous,
+    'C' otherwise. 'K' means match the layout of `a` as closely
+    as possible. (Note that this function and :meth:`ndarray.copy` are very
+    similar, but have different default values for their order=
+    arguments.)
+
+Returns
+-------
+arr : ndarray
+    Array interpretation of `a`.
+
+Notes
+-----
+This is equivalent to:
+
+>>> np.array(a, copy=True)  #doctest: +SKIP
+
+Examples
+--------
+Create an array x, with a reference y and a copy z:
+
+>>> x = np.array([1, 2, 3])
+>>> y = x
+>>> z = np.copy(x)
+
+Note that, when we modify x, y changes, but not z:
+
+>>> x[0] = 10
+>>> x[0] == y[0]
+True
+>>> x[0] == z[0]
+False
+File:      /var/lib/python/site-packages/numpy/lib/function_base.py
+Type:      function
+
+In [7]: 
+
+

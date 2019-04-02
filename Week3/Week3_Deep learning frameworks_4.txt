@@ -1,0 +1,142 @@
+
+Deep learning frameworks:
+
+Just like using a numerical linear algebra library is more efficient to perform matrix multiplication rather than performing it directly Deep Learning also has matured to the extent that Deep Learning Programming Frameworks are in most cases a more efficient way to implement large & complex neural networks like RNNs, CNNs, etc.
+
+Below are a few important frameworks that have both a good developer & a good user community,
+
+Caffe/Caffe2, Torch, Theano, TensorFlow, CNTK, Keras, mxnet, DL4J, PaddlePaddle, Lasagne
+
+Depending on programming language or application domain like computer vision, NLP or advertising one or more of these are suitable.
+
+Below are general guidelines to keep in mind when choosing a programming framework,
+
+1. Ease of programming (both development & deployment)
+	- This means ease of development, iterations & deployment. How easy is it to develop, test & deploy to production.
+	
+2. Running speed
+	- This means how efficient the processing of data sets during training is, especially when training with large data sets. Some are better than the others.
+
+3. Truly Open (open source with good governance)
+	- This means how reliable is it to be truly open in the long term. In order to be truly open, it has to be both open source & having a good governance with no single corporation ownership & control. Since we have history of software that starts out open source but over time is either updated to be having features only in proprietary versions or moved to proprietary cloud services.
+
+
+======
+
+TensorFlow:
+
+Basic structure of a TensorFlow program
+
+To motivate lets use a simple cost function J = w ** 2 - 10 * w + 25 that we want to minimize. This is actually the quadratic equation J = (w - 5) ^ 2 which is minimized at w = 5. But lets try to minimize it with TensorFlow as below. The concept is the same when minimizing a complex cost function J(W, b) with lots of parameters where we want to find the value of W & b that minimizes it,
+
+# Import the modules
+import numpy as np
+import tensorflow as tf
+
+# Define the parameter to be fit
+w = tf.Variable(0, dtype = tf.float32)
+
+# Define the cost function to minimize
+# cost = tf.add(tf.add(w ** 2, tf.multiply(-10., w)), 25)
+cost = w ** 2 - 10 * w + 25
+
+# Define the learning algorithm to train the model
+train = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
+
+# Initialize global variables
+init = tf.global_variables_initializer()
+
+# Create a TensorFlow session
+session = tf.Session()
+
+# Evaluate init for the session to initialize global variables
+session.run(init)
+
+# Evaluate w & see that its zero since we haven't run anything yet
+print( session.run(w) )
+
+# Evaluate train so that we perform one iteration of gradient descent
+session.run(train)
+
+# Evaluate w & see that its been updated since we have run one gradient descent iteration
+print( session.run(w) )
+
+# Perform 1000 iterations of gradient descent by evaluating train 1000 times & then evaluate w & see that w has been updated to a value very close to 5 (4.9999)
+for i in range(1000):
+	session.run(train)
+	
+print( session.run(w) )
+
+
+Now the above computes a fixed function of w. But with NNs we will need it to be a function of the data/dataset. Basically the coefficients to the quadratic function needs to be coming from the input data on which we train. To do that we do the below,
+
+# Import the modules
+import numpy as np
+import tensorflow as tf
+
+# Define & specify the coefficients (this represents the data in the case of NN training)
+coefficients = np.array([[1.],[-10.],[25.]])
+
+# Define the placeholder variable that tells TensorFlow that the value would be provided later during training (way to get the training data during NN training)
+x = tf.placeholder(tf.float32, [3,1])
+
+# Define the parameter to be fit as before
+w = tf.Variable([0], dtype = tf.float32)
+
+# Rewrite the cost function above to have the coefficients expressed by the placeholder to signify TensorFlow that the coefficients for the quadratic are controlled by the training input data
+cost = x[0][0] * ( w ** 2 ) + x[1][0] * w + x[2][0]
+
+# Define the learning algorithm to train the model
+train = tf.train.GradientDescentOptimizer(0.01).minimize(cost)
+
+# Initialize global variables
+init = tf.global_variables_initializer()
+
+# Create a TensorFlow session
+session = tf.Session()
+
+# Evaluate init for the session to initialize global variables
+session.run(init)
+
+# Evaluate w & see that its zero since we haven't run anything yet
+print( session.run(w) )
+
+# Evaluate train so that we perform one iteration of gradient descent by passing the coefficients for the placeholder variable
+session.run(train, feed_dict = {x:coefficients})
+
+# Evaluate w & see that its been updated since we have run one gradient descent iteration
+print( session.run(w) )
+
+# Perform 1000 iterations of gradient descent by evaluating train 1000 times & then evaluate w & see that w has been updated to a value very close to 5 (4.9999)
+for i in range(1000):
+	session.run(train, feed_dict = {x:coefficients})
+	
+print( session.run(w) )
+
+
+Now we can change the coefficients value as np.array([[1.],[-20.],[100.]]) & use the same code above to minimize & find the value close to 10 (9.999).
+
+In this way when training with Mini-batch gradient descent where we need to train on a different mini-batch in each iteration, we can use this placeholder variable and pass a different mini-batch in each iteration using feed_dict when invoking session.run.
+
+One change in the above in practice in order to handle proper clean up on exceptions or errors is to use the 'with' clause when creating & using a session as below,
+
+with tf.Session() as session:
+	session.run(init)
+	print( session.run(w) )
+
+
+In summary, the below are the key things to remember,
+
+With frameworks like TensorFlow all we need to do is specify/define the cost function using tensorflow built in functions & it can automatically compute the gradients & use the specified optimization algorithm to minimize the cost.
+
+So by virtue of specifying how to perform forward propagation by specifying the cost function using built in tensorflow functions, it can automatically perform backward propagation irrespective of the complexity of the function.
+
+Computation Graph:
+Specifying the cost function with built in functions enables TensorFlow to build a Computation Graph. Thus by performing forward propagation with the Computation Graph to compute the cost it can automatically perform backward propagation to compute the gradients.
+
+This is why when using TensorFlow to specify the forward propagation using the cost function with built in TensorFlow functions we do not need to explicitly implement the backward propagation step.
+
+Also just by specifying one of the optimization algorithms in one line of code TensorFlow can automatically compute the corresponding processing & this enables easy switching of optimization algorithms.
+
+This is an important reason behind why frameworks like TensorFlow enable us to be very efficient.
+

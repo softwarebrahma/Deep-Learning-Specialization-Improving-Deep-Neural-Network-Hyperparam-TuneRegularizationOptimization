@@ -1,0 +1,308 @@
+
+In [2]: import numpy as np
+
+In [7]: x = [[1, 2],[3,4]]
+
+In [8]: print(x)
+[[1, 2], [3, 4]]
+
+In [9]: print(x.shape)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+    print(x.shape)
+AttributeError: 'list' object has no attribute 'shape'
+
+In [10]: 
+
+In [11]: x = np.array([[1, 2],[3,4]])
+
+In [12]: print(x)
+[[1 2]
+ [3 4]]
+
+In [13]: print(x.shape)
+(2, 2)
+
+In [14]: print(np.square(x))
+[[ 1  4]
+ [ 9 16]]
+
+In [18]: print(np.power(x,2))
+[[ 1  4]
+ [ 9 16]]
+
+In [19]: print(np.sum(np.power(x,2)))
+30
+
+In [25]: print(np.sum(np.square(x)))
+30
+
+In [26]: 
+
+=
+
+In [3]: np.power?
+Type:            ufunc
+String form:     <ufunc 'power'>
+File:            /var/lib/python/site-packages/numpy/__init__.py
+Docstring:
+power(x1, x2, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
+
+First array elements raised to powers from second array, element-wise.
+
+Raise each base in `x1` to the positionally-corresponding power in
+`x2`.  `x1` and `x2` must be broadcastable to the same shape. Note that an
+integer type raised to a negative integer power will raise a ValueError.
+
+Parameters
+----------
+x1 : array_like
+    The bases.
+x2 : array_like
+    The exponents.
+out : ndarray, None, or tuple of ndarray and None, optional
+    A location into which the result is stored. If provided, it must have
+    a shape that the inputs broadcast to. If not provided or `None`,
+    a freshly-allocated array is returned. A tuple (possible only as a
+    keyword argument) must have length equal to the number of outputs.
+where : array_like, optional
+    Values of True indicate to calculate the ufunc at that position, values
+    of False indicate to leave the value in the output alone.
+**kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+Returns
+-------
+y : ndarray
+    The bases in `x1` raised to the exponents in `x2`.
+
+See Also
+--------
+float_power : power function that promotes integers to float
+
+Examples
+--------
+Cube each element in a list.
+
+>>> x1 = range(6)
+>>> x1
+[0, 1, 2, 3, 4, 5]
+>>> np.power(x1, 3)
+array([  0,   1,   8,  27,  64, 125])
+
+Raise the bases to different exponents.
+
+>>> x2 = [1.0, 2.0, 3.0, 3.0, 2.0, 1.0]
+>>> np.power(x1, x2)
+array([  0.,   1.,   8.,  27.,  16.,   5.])
+
+The effect of broadcasting.
+
+>>> x2 = np.array([[1, 2, 3, 3, 2, 1], [1, 2, 3, 3, 2, 1]])
+>>> x2
+array([[1, 2, 3, 3, 2, 1],
+       [1, 2, 3, 3, 2, 1]])
+>>> np.power(x1, x2)
+array([[ 0,  1,  8, 27, 16,  5],
+       [ 0,  1,  8, 27, 16,  5]])
+Class docstring:
+Functions that operate element by element on whole arrays.
+
+To see the documentation for a specific ufunc, use `info`.  For
+example, ``np.info(np.sin)``.  Because ufuncs are written in C
+(for speed) and linked into Python with NumPy's ufunc facility,
+Python's help() function finds this page whenever help() is called
+on a ufunc.
+
+A detailed explanation of ufuncs can be found in the docs for :ref:`ufuncs`.
+
+Calling ufuncs:
+===============
+
+op(*x[, out], where=True, **kwargs)
+Apply `op` to the arguments `*x` elementwise, broadcasting the arguments.
+
+The broadcasting rules are:
+
+* Dimensions of length 1 may be prepended to either array.
+* Arrays may be repeated along dimensions of length 1.
+
+Parameters
+----------
+*x : array_like
+    Input arrays.
+out : ndarray, None, or tuple of ndarray and None, optional
+    Alternate array object(s) in which to put the result; if provided, it
+    must have a shape that the inputs broadcast to. A tuple of arrays
+    (possible only as a keyword argument) must have length equal to the
+    number of outputs; use `None` for outputs to be allocated by the ufunc.
+where : array_like, optional
+    Values of True indicate to calculate the ufunc at that position, values
+    of False indicate to leave the value in the output alone.
+**kwargs
+    For other keyword-only arguments, see the :ref:`ufunc docs <ufuncs.kwargs>`.
+
+Returns
+-------
+r : ndarray or tuple of ndarray
+    `r` will have the shape that the arrays in `x` broadcast to; if `out` is
+    provided, `r` will be equal to `out`. If the function has more than one
+    output, then the result will be a tuple of arrays.
+Call signature:  np.power(*args, **kwargs)
+
+In [7]: 
+
+=
+
+np.square?
+Type:            ufunc
+String form:     <ufunc 'square'>
+File:            /var/lib/python/site-packages/numpy/__init__.py
+Docstring:
+square(x, /, out=None, *, where=True, casting='same_kind', order='K', dtype=None, subok=True[, signature, extobj])
+
+Return the element-wise square of the input.
+
+Parameters
+----------
+x : array_like
+    Input data.
+out : ndarray, None, or tuple of ndarray and None, optional
+    A location into which the result is stored. If provided, it must have
+    a shape that the inputs broadcast to. If not provided or `None`,
+    a freshly-allocated array is returned. A tuple (possible only as a
+    keyword argument) must have length equal to the number of outputs.
+where : array_like, optional
+    Values of True indicate to calculate the ufunc at that position, values
+    of False indicate to leave the value in the output alone.
+**kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+Returns
+-------
+out : ndarray
+    Element-wise `x*x`, of the same shape and dtype as `x`.
+    Returns scalar if `x` is a scalar.
+
+See Also
+--------
+numpy.linalg.matrix_power
+sqrt
+power
+
+Examples
+--------
+>>> np.square([-1j, 1])
+array([-1.-0.j,  1.+0.j])
+Class docstring:
+Functions that operate element by element on whole arrays.
+
+To see the documentation for a specific ufunc, use `info`.  For
+example, ``np.info(np.sin)``.  Because ufuncs are written in C
+(for speed) and linked into Python with NumPy's ufunc facility,
+Python's help() function finds this page whenever help() is called
+on a ufunc.
+
+A detailed explanation of ufuncs can be found in the docs for :ref:`ufuncs`.
+
+Calling ufuncs:
+===============
+
+op(*x[, out], where=True, **kwargs)
+Apply `op` to the arguments `*x` elementwise, broadcasting the arguments.
+
+The broadcasting rules are:
+
+* Dimensions of length 1 may be prepended to either array.
+* Arrays may be repeated along dimensions of length 1.
+
+Parameters
+----------
+*x : array_like
+    Input arrays.
+out : ndarray, None, or tuple of ndarray and None, optional
+    Alternate array object(s) in which to put the result; if provided, it
+    must have a shape that the inputs broadcast to. A tuple of arrays
+    (possible only as a keyword argument) must have length equal to the
+    number of outputs; use `None` for outputs to be allocated by the ufunc.
+where : array_like, optional
+    Values of True indicate to calculate the ufunc at that position, values
+    of False indicate to leave the value in the output alone.
+**kwargs
+    For other keyword-only arguments, see the :ref:`ufunc docs <ufuncs.kwargs>`.
+
+Returns
+-------
+r : ndarray or tuple of ndarray
+    `r` will have the shape that the arrays in `x` broadcast to; if `out` is
+    provided, `r` will be equal to `out`. If the function has more than one
+    output, then the result will be a tuple of arrays.
+Call signature:  np.square(*args, **kwargs)
+
+In [20]: 
+
+====
+
+In [6]: A2 = np.random.randn(2,3)
+
+In [7]: np.int64(A2 > 0)
+Out[7]: 
+array([[1, 1, 0],
+       [1, 0, 1]])
+
+In [8]: print(A2)
+[[ 0.10158906  0.64949872 -1.84196083]
+ [ 0.41143238 -0.29299716  0.05177968]]
+
+In [9]: print(A2 > 0)
+[[ True  True False]
+ [ True False  True]]
+
+In [10]: 
+
+In [3]: np.int64?
+Init signature: np.int64(self, /, *args, **kwargs)
+Docstring:      64-bit integer. Character code 'l'. Python int compatible.
+File:           /var/lib/python/site-packages/numpy/__init__.py
+Type:           type
+
+In [4]: 
+
+
+
+====
+
+
+In [1]: import numpy as np
+
+In [2]: A1 = np.array([[1,3],[2,6]])
+
+In [4]: print(A1)
+[[1 3]
+ [2 6]]
+
+In [5]: D1 = np.random.rand(A1.shape[0], A1.shape[1]) < 0.5
+
+In [6]: print(D1)
+[[ True  True]
+ [False  True]]
+
+In [7]: A1 = np.multiply(A1, D1)
+
+In [8]: print(A1)
+[[1 3]
+ [0 6]]
+
+In [9]: A1 = np.divide(A1, 0.5)
+
+In [10]: print(A1)
+[[  2.   6.]
+ [  0.  12.]]
+
+In [11]: 
+
+
+====
+

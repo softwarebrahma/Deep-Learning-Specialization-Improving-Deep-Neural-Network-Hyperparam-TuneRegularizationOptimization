@@ -1,0 +1,136 @@
+Learning Objectives
+
+1. Remember different optimization methods such as (Stochastic) Gradient Descent, Momentum, RMSProp and Adam
+2. Use random minibatches to accelerate the convergence and improve the optimization
+3. Know the benefits of learning rate decay and apply it to your optimization
+
+====
+
+Mini-batch gradient descent:
+
+As we know, applied ML is an empirical, highly iterative process where we need to train several models before we can tune and select one. So the faster we can go through this training cycle the better will be the efficiency.
+
+Performing gradient descent to train the model the traditional way by processing the entire training set (or batch) in every iteration or gradient descent step is called Batch gradient descent.
+
+In DL space which works in the regime of big data where the training set size could run into several million or more, performing batch gradient descent becomes very difficult & time consuming. We need a way for gradient descent to make progress before we process the entire training set. This way is called Mini-batch gradient descent.
+
+In Mini-batch gradient descent we split the training set into smaller baby sets or mini batches & process a mini-batch at a time (rather than the entire batch).
+
+In other words we will perform once step of gradient descent using each mini-batch thereby taking as many gradient descent steps/iterations as the number of mini-batches in processing the entire training set instead of taking only one gradient descent step when processing the entire training set with batch gradient descent. 
+
+This speeds up the training significantly when compared with regular batch gradient descent.
+
+We will index into a mini batch with the super-script flower bracket notation, so mini-batch t = X{t}, Y(t)	where X(t) & Y(t) will have dimensions of (xn, mini-batch-size) & (1, mini-batch-size) respectively.
+
+If data set size is 5 million & mini-batch-size is 1000 then we will have T = 5000 mini-batches.
+
+Below are the steps to implement Mini-batch gradient descent,
+
+for i in range(0, num_iterations) {
+
+	for t in range(1, T) {	// where T is the number of mini-batches
+		// Forward propagation
+		Z1 = np.dot( W1, X{t} ) + b1		// X{t} is the mini-batch t that we are using in the gradient descent step.
+		A1 = g1(Z1)
+		...
+		...
+		AL = gL(ZL)
+		
+		// Compute cost
+		J{t} = 1 / mini-batch-size * np.sum( L(ycap, y) ) + ( ( lambda / (2 * mini-batch-size) ) * np.sum( || Wl ||^2 F ) )		// where ycap & y and hence J{t} & its derivatives are all computed using the mini-batch X{t}, Y{t}.
+		
+		// Backward propagation
+		dJ{t}/dW1 = ..
+		dJ{t}/db1 = ..
+		...
+		dJ{t}/dWL = ..
+		dJ{t}/dbL = ..
+		
+		// Update parameters
+		W1 = W1 - alpha * dW1
+		b1 = b1 - alpha * db1
+		..
+		WL = WL - alpha * dWL
+		bl = bL - alpha * dbL
+	}
+
+}
+
+The inner loop above is called an 'epoch'. An epoch is basically one pass through a training set.
+
+The result of the above mini-batch steps is that with one epoch of the training set we take as many gradient steps as the number of mini-batches instead of taking only one step with each epoch with batch gradient descent.
+
+======
+
+Understanding mini-batch gradient descent:
+
+When plotting progress of the cost function optimization J (cost vs number of iterations curve), unlike batch gradient descent where the cost will monotonically reduce with each iteration (or epoch) consistently with mini-batch gradient descent this is not the case. With mini-batch the progress (curve) will be noisy but trending downwards.
+
+This is because with mini-batch gradient descent, we are actually training with a different mini-batch (X{t}, Y{t}) in each iteration (or epoch). Since different mini-batches might have different (potentially noisy) data sets this will cause the computed cost function (J{t}) to slightly increase sometimes before decreasing again resulting in the noisy curve. This can be controlled/tuned with learning rate (employing learning rate decay technique).
+
+One of the parameters to choose with mini-batch gradient descent therefore is mini-batch size.
+
+If mini-batch size is too large, say m, then it becomes batch gradient descent where the entire training set is a mini-batch ( (X{t}, Y{t}) == (X, Y) ).
+	- When plotting the contours for this, we see that we make smooth (low noise) large steps to reach the global minima & stay there (converge).
+	- But we start to loose out on making progress with gradient descent when processing the entire training set & lose the advantage of mini-batch gradient descent.
+
+If mini-batch size is too small say, 1, then its called Stochastic gradient descent where each training example is its own mini-batch ( (X{t}, Y{t}) == (x(i), y(i)) ). 
+	- When plotting the contours for this, we see that we make several noisy oscillations before finding & hovering around the global minima without staying there or converging. 
+	- Here though we can tune the noisiness with smaller learning rate, we lose out on the performance speed up from Vectorization (since we process training set one at a time) & lose the advantage of mini-batch gradient descent.
+
+So we need to choose an optimal mini-batch size that is not too large or too small (between 1 & m). 
+	- When plotting the contours for this, we see that we make reasonably smooth large steps to find & potentially hover around the global minima without staying there (converging). This can be tuned using learning rate decay.
+	- Its not guaranteed to always head towards the minimum but will consistently trend towards the direction of the minima like batch gradient descent.
+	- Here we get the advantage of Vectorization & the advantage of making progress on gradient descent as we process the entire training set once.
+
+Choosing a mini-batch size
+	- If the training set size is small just use Batch Gradient Descent as it might optimize/converge better. 
+		- Small is when the training set size is <= 2000.
+	- For larger training sets, because of the way memory is laid out & accessed by processors choosing a mini-batch size which is a power of 2 is generally more efficient. 
+		- The usual range of mini-batch sizes are 64, 128, 256 or 512 and rarely 1024.
+	- Make sure that the mini-batch set (X{t}, Y{t}) fits in CPU/GPU memory. Otherwise the performance with rapidly fall off the cliff.
+		- This usually depends on the size of a single training example & varies from one domain to another. So for large training examples the mini-batch size must be chosen so that the set can fit in CPU/GPU memory.
+
+In practice, mini-batch size is a hyper parameter that needs to be quickly tuned/searched to find the one which best optimizes the cost function J. The values given above recommendations based on which we choose a value to tune.
+
+======
+
+Exponentially weighted averages:
+
+Given a data set of daily temperatures over a year if we plot the data we will see that we get a noisy curve. Now if we need to know the trend or moving local averages of the temperature we can do the below weighted averaging,
+
+V0 = 0
+V1 = 0.9*V0 + 0.1*@1
+V2 = 0.9*V1 + 0.1*@2
+..
+Vt = 0.9*Vt-1 + 0.1*@t
+
+What we get now is a moving average of exponentially weighted averages of the temperature.
+
+This formula can more generally be written as below,
+
+Vt = beta * Vt-1 + (1 - beta) * @t
+	- where beta is a parameter that controls the period of averaging for the moving local average computation.
+
+This is called exponentially weighted averages or exponentially weighted moving averages in Statistics.
+
+When Vt is computed this way it can thought of as approximately averaging over ~= 1 / (1 - beta) days of temperatures. So, 
+
+If beta = 0.9, we get (1 / 1 - 0.9) = 10 days.
+
+If beta is very high say, beta = 0.98, we get (1 / 1 - 0.98) = 50 days.
+
+If beta is very low say, beta = 0.5, we get (1 / 1 - 0.5) = 2 days.
+
+If we plot the above moving averages we will see that,
+
+In the case of beta of 0.9 we get a reasonably smooth curve that adapts or changes reasonably well with the data.
+
+In the case of very high beta of 0.98 we get an even smoother curve (since averaging for larger period & giving more weight to it) but one that adapts less or changes more slowly with the data. So we get a curve shifted further to the right.
+
+In the case of very low beta of 0.5 we start to get a noisy curve that adapts quickly with the data but gets affected by local outliers.
+
+So we need to choose a value of beta that is somewhere in th middle like the one with 0.9.
+
+beta is in fact a hyper parameter that can be tuned to get some of these effects.
+

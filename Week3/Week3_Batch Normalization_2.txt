@@ -1,0 +1,168 @@
+
+Normalizing activations in a network:
+
+One of the recent major advances in Neural Networks & Deep Learning is the algorithm called Batch Normalization or simply Batch Norm.
+
+Batch Normalization helps make the hyper parameter search process much easier & makes the neural network more robust. The network can be trained with a larger valid value range for the hyper parameters & helps speed up the optimization/learning, there by enabling efficient training of even very deep neural networks.
+
+As we saw earlier with simple Logistic Regression & shallow NNs, normalizing the input features/units helps speed up the learning. The input normalization involved making the inputs have zero mean & unit variance (variance 1).
+
+The formula we used to have zero mean & variance 1 was,
+
+mu = ( 1. / m ) * np.sum( X, axis=0, keepdims=True )
+	- where m = X.shape[0]
+
+sigma^2 = ( 1. / m ) * np.sum( ( X - mu ) * 2, axis=0, keepdims=True )
+	- where m = X.shape[0]
+	
+X = ( X - mu ) / np.sqrt( sigma^2 + epsilon )
+	- where epsilon is a very small value say, 1e-8 (10 ^-8) to prevent numerical errors if sigma^2 is zero.
+
+We saw that by having the inputs normalized we get a symmetric, spherical cost function that is easy & quick to optimize since it will involve less back & forth oscillations.
+
+What Batch Normalization does is try to apply the same Normalization process to some of the hidden units (activations) so that the corresponding parameters/weights can be trained efficiently & faster just like how normalizing inputs X helps to fasten the learning of W & b with Logistic Regression. 
+
+In other words it tries to normalize the input activations A[l-1] to help speed up the learning of the weights Wl & bl in each hidden layer l. In practice we don't normalize Al, the units post activation instead we normalize Zl, the inputs before activation. Although there is debate on this, normalizing Zl is recommended.
+
+Below is a basic intuition & formula to perform Batch Normalization,
+
+Given some intermediate hidden units Zl on some layer l we do the below,
+
+First compute the mean, mu as before,
+
+mu = ( 1. / m ) * np.sum( Zl, axis=0, keepdims=True )
+	- where m = Zl.shape[0]
+	
+Then compute the variance, sigma^2 as before,
+
+sigma^2 = ( 1. / m ) * np.sum ( ( Zl - mu ) * 2, axis=0, keepdims=True )
+	- where m = Zl.shape[0]
+	
+Then compute the normalized value of Zl, Zlnormalized as,
+
+Zlnormalized = ( Zl - mu ) / np.sqrt( sigma^2 + epsilon )
+	- where epsilon is a very small value say, 1e-8 (10 ^-8) to prevent numerical errors if sigma^2 is zero.
+	
+Now we have Zlnormalized which has zero mean & variance 1.
+
+But since we don't want to normalize all the hidden units (so that they all don't have zero mean & unit variance) we compute the below Zl~ as below,
+
+Zl~ = ( gamma * Zlnormalized ) + beta
+
+	where,
+		- gamma & beta are learnable parameters of the algorithm. Which means we update them just like we update the parameters/weights that we are fitting/learning in each iteration of gradient descent.
+
+What the above formula does is that it allows us (or the model) to set the hidden units to have some standard or fixed mean & variance controlled by the parameters gamma & beta. It could have zero mean & variance 1 or some other mean & variance, but it will be a tuned standard mean & variance governed by gamma & beta.
+
+In fact if we notice carefully, we see that by careful choice of the parameter gamma & beta we can tune Zl to have any mean & variance or even compute the identity function as shown below,
+
+If, gamma = np.sqrt( sigma^2 + epsilon )		&		beta = mu
+
+Then, Zl~ = ( np.sqrt( sigma^2 + epsilon ) ) * Zlnormalized + mu
+		  = Zl
+		  
+The reason we do not want all the hidden units to have zero mean & unit variance is because when we have non-linear activation functions like sigmoid activation function if we only have z values in the range of zero mean & variance 1 we will be in the linear regime of the sigmoid function & may not be able to take advantage of the non-linearity & fit a more complex function/model.
+
+Now once we compute Zl~ we will use this instead of Zl in the rest of the training in the forward & backward propagation.
+
+So in summary what Batch Normalization does is,
+
+	- Try to apply the same normalization process as we do to the input units to some hidden units in the different layers & have the model learn & fit it so that the corresponding parameters/weights can be tuned faster.
+
+
+=====
+
+Fitting Batch Norm into a neural network:
+
+The key thing to remember here is that we perform batch norm at each layer after computing Zl AND BEFORE computing the corresponding activations Al and use the normalized & scaled units Zl~ to compute Al. We do this for every layer with the learned parameters gammal & betal controlling the scaling of the normalization (of the mean & variance of the hidden units Zl) at each layer l.
+
+This means in addition to the parameters/weights (W, l) we now have two more parameters gamma & beta when doing batch normalization. Note that this beta is totally different from the hyper parameter beta in Momentum/RMS Prop/Adam algorithm.
+
+We can then use any of the optimization algorithms batch gradient descent, mini-batch gradient descent, Momentum, RMS Prop or Adam to update these parameters & perform gradient descent just like before.
+
+The other key thing to remember is that in practice we perform batch normalization with mini-batches (although batch gradient descent would work aswell).
+
+So with mini-batches, the above mean & variance normalization is done per mini-batch in each layer & scaled with the corresponding gammal & betal parameters before computing the activations.
+
+Removal of bias parameter b with batch norm with the use of beta:
+
+We saw earlier that with batch norm we now have four parameters W, b, gamma & beta.
+
+Now with batch normalization when we compute mean & variance of the hidden units and subtract & divide the units by them to normalize (before scaling them with beta & gamma) we end up making the bias unit/parameter irrelevant. This is because when we subtract Zl by its mean we end up subtracting/negating the bias added by bl (because any constant you add will get cancelled out by the mean subtractions step). 
+
+So bl becomes unnecessary & can be removed (or set as zero).
+
+So, Zl = Wl * Al-1 + bl can be changed to, 
+
+Zl = Wl * Al-1
+
+Zlnormalized = <same as before>
+
+Zl~ = ( gammal * Zlnormalized ) + betal
+
+This is fine because with batch norm since we use the beta parameter to scale & control the mean it therefore also has the same effect of the shit or bias term. 
+
+The parameters gammal & betal will therefore have the same dimensions as Zl & bl which is (nl, 1), where nl is the number of hidden units in larger l which we want to normalize & scale using gammal & betal in batch norm.
+
+Finally, the steps when implementing mini-batch gradient descent using batch norm are,
+
+for t in range(0, T)
+
+	Perform forward propagation for the mini-batch (X{t}, Y{t})
+		 In each hidden layer, perform batch batch norm & use the normalized & scaled Zl~ instead of Zl for the activations
+		 
+	Perform backward propagation for the mini-batch & compute the derivatives dWl, dgammal & dbetal
+	
+	Update the parameters with the gradients like below,
+		// Wl = Wl - alpha * dWl
+		// gammal = gammal - alpha * dgammal
+		// betal = betal - alpha * dbetal
+
+
+Now the above can be done with any of the other advanced optimization algorithms like Momentum, RMS Prop or Adam using its formulas & it will work.
+
+In practice though we rarely need to hand implement batch norm as programming frameworks like Tensor flow provide in built functions that we can use.
+
+
+=====
+
+Why does Batch Norm work?:
+
+Besides the first intuition that batch norm applies the same normalization process of input units (so they have similar ranges & hence speed up learning) to some hidden units to speed up the learning of the corresponding parameters/weights, there are couple of other intuitions aswell,
+
+Second is that batch norm makes the weights from the later or deeper layers of the NN more robust to changes in the weights of the earlier layers. Below is the intuition on what this means,
+
+Taking the example of a shall model/classifier trained with black & white cat images & testing them on color images we can expect the model to perform poorly. This is because of the shift or change or difference in the distribution of the input data from the training to the test set. This idea of shift or change in the input data distribution is also referred to as Covariate Shift. The idea being that if we have a model that learnt a mapping from X to Y, then if the distribution of X changes the model needs to be trained again to learn the new mapping from X to Y. This is true even if the ground truth function mapping X to Y doesn't change as described in the cat picture classifier. Also this becomes crucial if the ground truth function also shits aswell with the shift in the input data distribution.
+
+Now to understand how Covariate Shift can affect a neural network we need to remember that each layer of the NN is getting its inputs from the previous layer activations & tries to learn its corresponding weights so as to minimize the loss of the prediction/output. Now as part of the training iterations we update the parameters/weights for each layer, which will then mean that the activations computed with it will also keep changing. So from a deeper layer's perspective its activation inputs will keep on changing. In other words, the distribution of the activation values that a deep layer is taking as inputs keeps shifting resulting in the Covariate Shift problem.
+
+Now what batch norm does here is to reduce or minimize the quantum or amount of shift in the distribution of the input activations by enforcing that the mean & variance of the activations remains constant/same. Thus while the distribution of the activation will change its impact is minimized since the activations will have the same mean & variance that the model has fit. So the impact of the change in the weights in the earlier layers on the shift in the distribution of the deeper layer activation inputs is minimized resulting in faster learning as the coupling is reduced & the learning in each layer is fairly independent.
+
+Thus batch norm by enforcing constant/same mean & variance for the hidden layer units minimizes the shift in the data distribution of the units in the deeper hidden layers (minimizes Covariate Shift) resulting in faster learning of the parameters/weights.
+
+Third is that batch norm has a slight Regularization effect & thus enables quicker convergence of the optimization. Below is the intuition on what this means,
+
+Since batch norm is always performed with mini-batches, when we perform normalization & scaling of the hidden layer units as part of batch normalization we use the mean & variance computed with the data from each mini-batch. Since each mini-batch contains only a small subset of the training data (64, 128, 256, 512, etc) the mean & variance computed with it will be noisy. This causes the normalization to be noisy. Since we use this noisy mean & variance to both normalize & scale it aswell it introduces further noise.
+
+So, similar to drop out regularization which introduces multiplicative noise by randomly multiplying hidden layer units with zero & one with some probability, batch norm also introduces both multiplicative & additive noise since it scales/divides the hidden layer units by the noisy variance & subtracts by the noisy mean.
+
+Thus similar to drop out regularization, batch norm also has a slight regularization effect. Since the downstream hidden layer units cannot rely on any one input hidden layer unit heavily since it may be noisy causing the weights to be more evenly distributed, lowering its norm & resulting in regularization.
+
+Note that this regularization effect is only limited & therefore cannot be used as a regularizer. Its just a side effect of the normalization process. So batch norm can be used with Drop Out to achieve actual regularization.
+
+One other non-intuitive side effect of this regularization effect is that as the size of the mini-batch increases the noise from mean & variance reduces & this results in reducing the regularization effect. So increasing mini-batch size reduces the regularization effect.
+
+
+=====
+
+Batch Norm at test time:
+
+Since batch norm computes the mean & variance in each mini-batch & uses it for normalization & scaling of each hidden layer activations as part of the forward & backward propagations we cannot use the trained algorithm as is when using it for predictions during testing time. This is because during testing when making predictions we are dealing with one example and not a mini-batch.
+
+We therefore need a reasonable way to estimate or pick the mean & variance for each hidden layer that we can then use to normalize & scale the test input units during prediction. 
+
+There are many ways do it but the method used in practice is to compute & use the exponentially weighted average of the mean & variance (across the different mini-batches) for each hidden layer from the training set & use that to estimate the mean & variance to be used at each hidden layer on the test/dev set at test time to make prediction (to compute Zlnormalized & Zl~).
+
+So we basically take the moving weighted average or the running average of the mean & variance for each layer as we iterate through each mini-batch & finally use the computed weighted averages from the training set on the test set to compute the predictions.
+
+With most programming frameworks there is usually a default reasonable way to estimate the mean & variance automatically.

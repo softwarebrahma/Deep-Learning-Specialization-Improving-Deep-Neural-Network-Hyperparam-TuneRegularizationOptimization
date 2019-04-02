@@ -1,0 +1,46 @@
+
+How does gradient checking work?
+
+Backpropagation computes the gradients  ∂J/∂θ , where  θ  denotes the parameters of the model.  
+
+J  is computed using forward propagation and your loss function.
+
+In backpropagation, you use your code for computing  J  to verify the code for computing  ∂J/∂θ .
+
+So, ∂J/∂θ  is what you want to make sure you're computing correctly. You can compute  J(θ+ε)  and  J(θ−ε)  (in the case that  θ  is a real number)
+
+
+The definition of a derivative (or gradient) is :
+
+∂J/∂θ =	limε→0	J(θ+ε) − J(θ−ε) / 2ε
+
+where,
+
+" limε→0 " notation, it's just a way of saying "when  ε  is really really small."
+
+
+====
+
+Note:
+
+Gradient Checking is slow! 
+	- Approximating the gradient with  ∂J/∂θ ≈ J(θ+ε) − J(θ−ε) / 2ε  is computationally costly. 
+	- For this reason, we don't run gradient checking at every iteration during training. 
+	- Just a few times to check if the gradient is correct.
+
+Gradient Checking, at least as we've presented it, doesn't work with dropout. 
+	- You would usually run the gradient check algorithm without dropout to make sure your backprop is correct, then add dropout.
+
+
+====
+
+What you should remember from this notebook:
+
+	- Gradient checking verifies closeness between the gradients from backpropagation and the numerical approximation of the gradient (computed using forward propagation).
+
+	- Gradient checking is slow, so we don't run it in every iteration of training. You would usually run it only to make sure your code is correct, then turn it off and use backprop for the actual learning process.
+
+====
+
+
+

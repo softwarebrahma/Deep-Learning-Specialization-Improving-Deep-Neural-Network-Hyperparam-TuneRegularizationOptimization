@@ -1,0 +1,109 @@
+
+Regularization:
+
+When a model suffers from overfitting or high variance, one of the first things to try is Regularization. The other best option is get more training data & train on more data. But since this is not always an option Regularization is the best option.
+
+For Logistic Regression, this was the formula to apply Regularization
+
+Min J(W,b) for W,b where J(W,b) =  ( 1 / m ) * np.sum(L(Ycap , Y)) + (lambda / 2 * m) * || W ||^2 2
+
+where || W ||^2 2 is the L2 norm or Euclidean norm of W which is = np.sum( np.pow(W, 2) ) or equivalently = np.dot(W.T, W)
+
+This is called L2 Regularization since it uses L2 norm.
+
+The other choice is L1 Regularization that uses L1 norm, || W || 1,
+
+where || W || 1 = np.sum(|W|) & the Regularization term can either (lambda / m) * || W || 1 	or 	(lambda / 2 * m) * || W || 1
+
+Though the L1 norm might result in a sparse vector W (having lot of zero valued elements) which might help compress the model & reduce memory for the model but it generally doesn't help much & L2 Regularization is used more extensively.
+
+Also we don't apply regularization to the bias unit b since its just a single value when compared to the multi-dimensional weights vector & adding regularization to it doesn't make much of a difference & can hence be skipped.
+
+The gradient descent formula with regularization then was,
+
+W = W - alpha * dW + (lambda / m) * W
+
+The Regularization term, lambda here is a hyperparameter that has to be chosen/tuned using the Development set.
+
+Now for Neural Networks, the formula to apply regularization is as below,
+
+The objective or cost function would be,
+
+Min of J(W1,b1,.....,WL,bL) for W1,b1,.....,WL,bL where L is the number of layers of the Neural Network = (1 / m) * np.sum( L(Ycap, Y) ) + (lambda / 2 * m) * np.sum( || Wl || ^2 F ) where l ranges from 1 to L.
+
+where || Wl || ^2 F is the Frobenius norm (really the sum of the squares of the Wl matrix elements or the L2 norm of the matrix Wl) which is = np.sum( np.pow(Wl, 2) ) where Wl is matrix of dimensions (nl, nl-1).
+
+Now the gradient descent formula with regularization would then be,
+
+Wl = Wl - alpha * ( dWl + (lambda / m) * Wl )	for l = 1 to L.
+	- where dWl (dJ/dWl) is obtained from back propagation
+	
+If we expand the above we get,
+
+Wl = Wl - ( (alpha * lambda) / m ) * Wl - ( alpha * dWl )
+
+If we see the above term it can be rewritten as below,
+
+Wl = Wl * ( 1 - ( (alpha * lambda) / m ) ) - ( alpha * dWl )
+
+Now we see that we are actually reducing/subtracting the value of W matrix elements by multiplying with a term/number slightly less than 1 which is ( 1 - ( (alpha * lambda) / m ) ).
+
+This is why L2 Regularization for Neural Networks is also called as Weight Decay. Since the weights are reduced in the above manner along with the usual gradient descent term ( alpha * dWl).
+
+
+=======
+
+Why regularization reduces overfitting:
+
+The key intuition is that as the regularization term lambda is increased to a large value it incentivizes the weights W to be closer to zero (because of the cost function optimization). This then results in many of the hidden units making very little impact to the model (as their weights are close to zero) resulting in a simpler model almost becoming like a simple logistic regression. As we know a simple model tends to have less variance or less overfitting (as bias increases).
+
+Another intuition is when we take the case of using tanh activation function, g(z) = tanh(z)
+
+When we plot tanh(z) against z we see that the function tends to have a linear regime for value ranges of z that are close to zero (Only when z moves away from values closer to zero, positive or negative, does the function become less linear). So for values of z close to zero we end up computing a linear function.
+
+We know from our earlier intuition that when we have large value of lambda, the weights W become closer to zero & this then causes z to be closer to zero aswell since,
+
+Zl = np.dot(Wl, Al-1) + bl
+
+If Wl is close to zero then Zl also becomes close to zero.
+
+This then results in a much simpler linear model which accordingly will have a lower variance since it will have less of overfitting.
+
+Note : When debugging gradient descent with regularization when we plot J(W,b) against number of iterations we should make sure to use the value with the regularization term otherwise it won't monotonically reduce.
+
+Another sometimes used powerful regularization technique is Dropout Regularization.
+
+
+=======
+
+Dropout Regularization:
+
+In dropout regularization, the idea is to go through each layer of the NN & have some random probability of keeping or dropping a node & its links from the network for each training example & to do this in each gradient descent iteration so that nodes in each layer are randomly dropped or kept based on the probability value uniquely for each example in each iteration (using the same probability as forward propagation for back propagation aswell). 
+
+The intuition is that since the model becomes simpler as a result of nodes getting dropped it will result in lowering variance/reducing overfitting.
+
+The most commonly used implementation technique for Dropout Regularization is Inverted Dropout Regularization.
+
+Below is the steps, illustrated with layer l value of 3,
+
+1. Define a probability value of 0.8 (ranges from 0 to 1 since its probability). For 0.8, it means we want an 80% chance for nodes to be retained & 20% chance for nodes to be dropped/eliminated.
+	- keepProbs = 0.8
+	
+2. Define a drop vector/matrix as below to randomly choose dropouts based on the probability above. Below will create a boolean vector/matrix with values randomly set so that 80% of them will be true (1) & 20% will be false (0). This has to have the same shape as the activation vector/matrix.,
+	- D3 = np.random.rand(A3.shape[0], A3.shape[1]) < keepProbs
+	
+3. Perform a element wise product of D3 & A3 & assign it to A3 which will result in 20% of the activation vector/matrix elements becoming zero. The python vector element wise product (np.multiply or *) will convert boolean to 1 & zero before doing the product.
+	- A3 = np.multiply(A3, D3)		or		A3 *= D3
+	
+4. Perform "Inverted Dropout" step of dividing the A3 vector/matrix by the keepProbs to scale up the activation vector/matrix D3 & compensate for the 20% value loss so that the expected value of A3 remains the same. This is done so that expected value of Z4 remains the same where Z4 = (W4 . A3) + b4.,
+	- A3 /= keepProbs
+	
+This step is why this technique is called Inverted Dropout & is useful to ensure that the scaling is proper & is not impacted by the random dropping of activation units.
+	- This is especially helpful during the test phase since it helps simplify & speed up the test/prediction since it has less scaling problem.
+
+During the test phase when we make the prediction we don't perform any dropout. This since, by virtue of performing the "inverted dropout" earlier we have ensured that the data was scaled correctly & hence no scaling is necessary during test/prediction to compensate.
+
+
+
+
+

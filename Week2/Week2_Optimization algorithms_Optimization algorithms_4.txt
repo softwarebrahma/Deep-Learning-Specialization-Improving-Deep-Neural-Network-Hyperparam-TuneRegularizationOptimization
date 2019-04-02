@@ -1,0 +1,90 @@
+
+Learning rate decay:
+
+Learning rate decay is another technique used to speed up gradient descent/learning of the algorithm. It involves slowly reducing the learning rate alpha over time & thereby speed up convergence of the optimization.
+
+Below is the intuition on why this is needed/works,
+
+As we saw earlier, with Mini-batch gradient descent when we choose a reasonably small mini-batch size & perform gradient descent with a fixed learning rate alpha, we will see that it takes reasonably noisy steps in its path towards the minimum but doesn't actually converge & instead keeps oscillating or wandering widely around the minimum. This is because the learning rate is fixed but the different mini-batches would be noisy causing the oscillations.
+
+Now if we slowly reduce the learning rate, we will take bigger gradient descent steps in the initial phases (when learning rate is still large) but will take smaller & smaller steps as we proceed near the minimum (due to smaller learning rate) & will end up oscillating in a narrow/small/tighter region around the minimum instead of oscillating widely.
+
+So the intuition/reason behind slowly reducing the learning rate alpha is that during initial phases of learning we want larger gradient descent steps but as we near the converge we want smaller gradient steps to make sure we converge better & sooner.
+
+Below is one implementation method/formula used to implement learning rate decay (as a function of the epoch number),
+
+Recall that an epoch is one pass through the entire training set/data. So a large training set is split into several mini-batches & one complete pass through all the mini-batches is one epoch.
+
+Here we will reduce alpha with each epoch using the below formula,
+
+alpha = ( 1 / ( 1 + ( decay_rate * epoch_number ) ) ) * alpha0
+
+	- Where
+		- alpha0 is a hyper parameter that controls the initial value of learning rate, alpha
+		- decay_rate is another hyper parameter that controls the rate of learning rate decay
+
+
+To take a concrete example, lets say alpha0 is 0.2 & decay_rate = 1
+
+epoch |	alpha
+  1		 0.10
+  2		 0.67
+  3		 0.50
+  4		 0.40
+  
+As we see above alpha is reduced linearly with each epoch.
+
+
+There are other implementation methods/formulas as well,
+
+1. Exponentially decaying learning rate that decays quickly(some number less than one raised to the power of epoch number),
+
+alpha = ( 0.95 ^ epoch_number ) * alpha0
+
+
+2. Other methods of decay (with some hyper parameter constant K just like decay_rate),
+
+alpha = ( K / np.sqrt(epoch_number) ) * alpha0
+
+alpha = ( K / np.sqrt(t) ) * alpha0
+	- where t is the mini-batch number
+
+
+3. Discreet Staircase method,
+
+Here we have a discreetly decreasing learning rate. We start with a learning rate & run a few gradient descent steps & then reduce it by half, run a few gradient descent steps then reduce it further by a half again & so on.
+
+4. Manual decay method,
+
+Here we manually reduce the learning rate & is suitable only when we train one model at a time & when they take hours or days to train.
+
+
+
+=====
+
+The problem of local optima:
+
+When training large neural networks most points of zero gradients are not local optima. Instead, most points of zero gradients in a cost function for a neural network are actually Saddle points.
+
+Informally stated, for a cost function over a high dimensional space if the gradient is zero then in each (individual/component) direction/dimension it can either be a convex or a concave like/shaped function/curve. So if we have say a 20,000 dimensional space/function then for it be a local optima all 20,000 dimensions should have a convex like function which is highly unlikely & has a 2 ^ -20,000 chance. Instead we are more likely to find some direction/dimension where the function curves upwards & some where the function curves downwards instead of all curving upwards.
+
+This is why in very high dimensional space where neural networks are used to optimize we are more likely to run into Saddle points than a local optima.
+
+The term Saddle point comes from the similarity in shape to a middle center point in the Saddle on a horse where the rider sits.
+
+So the intuitions from lower dimensional space don't necessarily generalize or apply to higher dimensional space over which NN algorithms operate.
+
+
+Problem of Plateaus:
+
+For neural networks Plateaus slow down learning a lot. A Plateau is a region where the derivative is close to zero for a long time. Its name comes from the similarity in shape to a Plateau.
+
+Since the derivative is close to zero for a long time in a plateau it might take a long time for gradient descent to slowly go down the plateau & get off it through random perturbations. This then slows down learning.
+
+
+So,
+
+1. Gradient Descent for Neural Networks is unlikely to get stuck in a bad Local Optima, as long as we train a reasonably large neural network with lots of parameters with a cost function over the reasonably high dimensional space.
+
+2. Plateaus slow down learning & require advanced optimization algorithms like Momentum, RMSprop & Adam to speed up learning when encountering Plateaus. Algorithms like Adam Optimization are specially well suited to travel down & get off of plateaus quickly.
+

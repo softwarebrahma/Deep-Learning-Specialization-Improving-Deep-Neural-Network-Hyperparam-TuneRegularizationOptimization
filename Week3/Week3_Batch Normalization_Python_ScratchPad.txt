@@ -1,0 +1,62 @@
+In [6]: X = np.array([[0,0],[1,1],[2,4],[3,9],[4,16],[5,25]])
+In [7]: X = X[1:,]
+In [8]: print(X)
+[[ 1  1]
+ [ 2  4]
+ [ 3  9]
+ [ 4 16]
+ [ 5 25]]
+In [9]: np.square(X)
+Out[9]: 
+array([[  1,   1],
+       [  4,  16],
+       [  9,  81],
+       [ 16, 256],
+       [ 25, 625]])
+In [10]: X * 2
+Out[10]: 
+array([[ 2,  2],
+       [ 4,  8],
+       [ 6, 18],
+       [ 8, 32],
+       [10, 50]])
+In [11]: mu = (1 / X.shape[0]) * np.sum(X, axis=0, keepdims=True)
+In [12]: print(mu)
+[[0 0]]
+In [13]: mu = (1. / X.shape[0]) * np.sum(X, axis=0, keepdims=True)
+In [14]: print(mu)
+[[  3.  11.]]
+In [15]: 
+In [16]: sigmasqr = (1. / X.shape[0]) * np.sum( (X - mu) * 2, axis=0, keepdims=True )
+In [17]: 
+In [21]: print(sigmasqr)
+[[ 0.  0.]]
+In [22]: 
+In [22]: print (X - mu)
+[[ -2. -10.]
+ [ -1.  -7.]
+ [  0.  -2.]
+ [  1.   5.]
+ [  2.  14.]]
+In [23]: print ( (X - mu) * 2)
+[[ -4. -20.]
+ [ -2. -14.]
+ [  0.  -4.]
+ [  2.  10.]
+ [  4.  28.]]
+In [24]: print ( np.sum((X - mu) * 2, axis=0, keepdims=True))
+[[ 0.  0.]]
+In [25]: 
+In [25]: X = (X - mu) / np.sqrt(sigmasqr + 1e-8)
+In [26]: print(X)
+[[ -20000. -100000.]
+ [ -10000.  -70000.]
+ [      0.  -20000.]
+ [  10000.   50000.]
+ [  20000.  140000.]]
+In [27]: 
+
+==========
+
+
+

@@ -1,0 +1,52 @@
+
+Hi,
+
+I notice that in the final model function there is the below code where the number of minibatches is computed,
+
+"num_minibatches = int(m / minibatch_size) # number of minibatches of size minibatch_size in the train set"
+
+This does not take into account the offset when the training set/batch size is not an exact multiple of the minibatch size (in this case m = 1080 & minibatch_size = 32 which will entail an additional last mini-batch of 24 examples).
+
+Won't this affect the epoch cost values since we use the above to take the average of the mini batch costs in each epoch? or am I missing something basic here.
+
+Also can't the above computation be moved out of the loop to be just above the epoch loop since it doesn't change with the loop & is repeatedly computed?
+
+Any one?
+
+Thanks
+Muthu
+
+
+===
+
+Hi,
+
+I notice that in the final model function there is the below code where the number of minibatches is computed,
+
+"num_minibatches = int(m / minibatch_size) # number of minibatches of size minibatch_size in the train set"
+
+This does not take into account the offset when the training set/batch size is not an exact multiple of the minibatch size (in this case m = 1080 & minibatch_size = 32 which will entail an additional last mini-batch of 24 examples).
+
+Won't this affect the epoch cost values since we use the above to take the average of the mini batch costs in each epoch? or am I missing something basic here.
+
+Also can't the above computation be moved out of the loop to be just above the epoch loop since it doesn't change with the loop & is repeatedly computed?
+
+Any one?
+
+Thanks
+Muthu
+
+=========
+
+Incorrect minibatch count computation in tensorflow assignment?
+
+
+I notice that in the final model function there is the below code where the number of minibatches is computed,
+"num_minibatches = int(m / minibatch_size) # number of minibatches of size minibatch_size in the train set"
+This does not take into account the offset when the training set/batch size is not an exact multiple of the minibatch size (in this case m is 1080 and minibatch size is 32 which will entail an additional last mini batch of 24 examples)
+Won't this affect the epoch cost values since we use the above to take the average of the mini batch costs in each epoch? or am I missing something basic here
+Also can't the above computation be moved out of the loop to be just above the epoch loop since it doesn't change with the loop and is repeatedly computed?
+Any one?
+Thanks
+Muthu
+

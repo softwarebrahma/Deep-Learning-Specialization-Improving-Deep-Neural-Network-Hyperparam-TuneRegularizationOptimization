@@ -1,0 +1,42 @@
+
+In [4]: x = np.array([[1,2],[3,4]])
+In [5]: print(x.shape)
+(2, 2)
+In [6]: print(x)
+[[1 2]
+ [3 4]]
+In [7]: 
+
+In [9]: np.e?
+Type:        float
+String form: 2.71828182846
+Docstring:
+float(x) -> floating point number
+Convert a string or number to a floating point number, if possible.
+In [10]: 
+
+In [11]: print(np.power(np.e, x))
+[[  2.71828183   7.3890561 ]
+ [ 20.08553692  54.59815003]]
+In [12]: print(x)
+[[1 2]
+ [3 4]]
+In [13]: 
+
+In [14]: y = np.power(np.e, x)
+In [15]: print(y)
+[[  2.71828183   7.3890561 ]
+ [ 20.08553692  54.59815003]]
+In [16]: 
+
+In [16]: print(y / np.sum(y, axis=0, keepdims=True))
+[[ 0.11920292  0.11920292]
+ [ 0.88079708  0.88079708]]
+In [17]: a = y / np.sum(y, axis=0, keepdims=True)
+In [18]: print(a)
+[[ 0.11920292  0.11920292]
+ [ 0.88079708  0.88079708]]
+In [19]: 
+
+=======
+

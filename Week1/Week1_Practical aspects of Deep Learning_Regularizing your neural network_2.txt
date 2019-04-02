@@ -1,0 +1,59 @@
+
+Understanding Dropout:
+
+Besides the intuition that dropping out different nodes in the different layers in each iteration of training results in a much simpler/smaller neural network that reduces overfitting, the other intuition is from the perspective of a single node.
+
+Each activation unit node has various inputs & produces an output. Since with drop out regularization we randomly drop out nodes in each layer, nodes tend not to rely on any single input/feature since it could be dropped. This then causes the weights to be more evenly distributed among the inputs/features & no single input/feature is provided with more weight. This has the effect of shrinking the squared norm of the weights similar to L2 regularization. 
+
+Thus, similar to L2 regularization the effect of drop out regularization is that the weights are shrinked/reduced resulting in reduced overfitting. In fact drop out can be shown to be an adaptive form of L2 regularization. The different being that in the case of L2 regularization the penalty on the different weights is applied differently based on the activation unit size (being multiplied) & hence is more closely adapted to the scale of the inputs/features.
+
+Similar to L2 regularization where the regularization parameter lambda can be different for each layer to regularize some layers more than the others, in drop out regularization we can set the keep/drop probability keepProbs to be different for each layer so that for layers with lots of parameters/weights which are susceptible to overfitting we can regularize/drop out more by setting a lower value for keepProbs (say 0.5). For layers that are comparatively less prone to overfitting by virtue of number of parameters/weights we can regularize/drop out less by setting a slightly higher value for keepProbs (say 0.7) & for layers that we don't expect overfitting we can turn off or not perform drop out by setting the value to be 1.0 (which will retain all units).
+	- The problem with this approach is that we will then have more hyper parameters to select/tune with cross-validation/dev set, the keepProbs for each layer.
+	- One alternative would be to apply drop out (uniformly?) only to some layers & not perform drop out on others (set to 1.0), in which case we will have only one hyper parameter which is the keepProb of the layers we perform drop out.
+	- Technically drop out can be applied to the input layer aswell but is rarely performed. If we do then setting a value very close to one (say 0.9) is recommended as we don't want input features to be dropped.
+
+Couple of implementation details,
+
+Early adoptions of Drop out regularization came from the field of Computer Vision where we have a huge number of input features (the pixels) & less training data resulting in overfitting almost all the time. Thus drop out was performed almost by default & it worked. But its important to remember that Dropout is a regularization technique used to reduce overfitting (variance) & must be applied only if the model suffers from overfitting. Thus the intuition of always performing drop out does not generalize from Computer Vision to other domains.
+
+One major draw back with Dropout regularization is that the Cost Function J is no longer well defined since we randomly drop nodes in each iteration. Thus we can longer use gradient checking tools like learning curve (cost vs number of iterations plot) to check if the algorithm is learning well. One alternative is to first turn off drop out (set keepProbs to 1.0) & train and use gradient checking learning curve to make sure that the cost reduces monotonically. Once trained, then apply drop out without introducing bugs & use other methods to verify.
+
+==============
+
+Other regularization methods:
+
+Data Augmentation:
+
+Data Augmentation is a technique whereby we take existing training examples & synthesize new ones from it by introducing random distortions, alterations & other transformations. Eg: With computer vision for images, horizontally rotate an image to create a new one or rotate & zoom in or otherwise meaningfully randomly distort to create a new one similarly with OCR by introducing random distortions to the alphabet images.
+
+Since training on more data always reduces overfitting/variance & since getting more training is always not possible or cost effective we use data augmentation to synthesize more examples using existing data. Though this recreates redundant examples its still is a cheap & effective way barring the computational cost of synthesizing data to train on more data & thereby reduce overfitting/variance.
+
+
+Early Stopping:
+
+Early Stopping is a technique whereby we stop the training of the model earlier so as to reduce overfitting/variance. With early stopping, when performing gradient descent & doing gradient checking in addition to plotting the training error or cost J against the number of iterations we also plot the development set error or cost J. In the plot as we check for the training & development errors to monotonically reduce we also check for when the development error starts to increase. We then pick the parameters/weights that correspond to the lowest value of training & development error and use that for the final trained model.
+
+The reason or intuition on why this works is that when we start training the weights would have small values close to zero since we initialize the weights with small random values & as we train more the values increase more & more to become very large. With early stopping what we do by stopping the training early is to pick the weights in the middle range that tend to have a smaller norm. So just like L2 or drop out regularization by having weights with shrinked/reduced square norm we end up regularizing or reducing overfitting/variance.
+
+Disadvantage of Early Stopping & Why L2 regularization & tuning regularization parameter lambda is better despite the increased computational cost of searching & choosing from the lambda hyper parameter space:
+
+Given the number of hyper parameter to search & select from when building a neural network model it is recommended to organize deep learning as distinct steps/tasks as below & have separate tools/techniques in each step to perform the step/task,
+
+1. Optimize the Cost Function J(W,b)
+	- Tools like training a big model, training more using gradient descent & other advanced optimization algorithms, etc.
+	- Here the focus is exclusively to train W & b so as to achieve the smallest/lowest possible value for cost J.
+
+2. Not overfit the data or reduce overfitting
+	- Tools like regularization, training on more data, etc.
+	- Here the focus is exclusively to reduce overfitting/variance.
+
+This principle of performing the tasks one at a time independently of one another is called Orthogonalization & helps search the hyper parameter space efficiently.
+
+With Early Stopping, the problem is that we couple the above two steps into one where we don't fully optimize the cost function since we stop training early & at the same time try to reduce overfitting/variance & regularize. This causes the searching of the various models & hyper parameters very difficult to manage & comprehend.
+
+The alternative is to use L2 regularization where we first train longer & optimize the cost function & then tune/search for different values of the regularization hyper parameter lambda space to find the optimal value of the weights that has the smaller norm.
+
+The downside here is that we incur additional computational cost in searching the lambda hyper parameter space while in the case of early stopping we achieve this with a single gradient descent process where we find the optimal weights without needing to try out different values of lambda.
+
+But this is still preferable as it enables effective searching of the hyper parameter space when fitting the model.
+

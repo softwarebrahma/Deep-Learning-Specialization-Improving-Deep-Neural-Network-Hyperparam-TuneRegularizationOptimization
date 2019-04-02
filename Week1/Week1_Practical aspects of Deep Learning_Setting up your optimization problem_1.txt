@@ -1,0 +1,118 @@
+
+Normalizing inputs:
+
+One of the techniques used to speed up the training of the model is Normalization.
+
+Normalizing the inputs is a two step process,
+
+1. Subtract the mean (zero out the mean):
+
+Here the idea to subtract the mean of the input features from the input features so that they have zero mean. Essentially move the inputs so that they are closer to zero.
+
+Formula is,
+
+mu = (1 / m) * np.sum(X, axis=0, keepdims=True)
+	- where m = X.shape[0]
+
+X = X - mu		or 		X -= mu (not possible without cast)
+
+2. Normalize the variance:
+
+Here the idea is to reduce or normalize the variance of the input features so that they have similar variances. Essentially have a variance of 1.
+
+Formula is,
+
+sigma^2 = (1 / m) * np.sum(X * 2, axis=0, keepdims=True)
+	- where m = X.shape[0]
+	
+X = X / sigma^2		or 		X /= sigma^2 (not possible without cast)
+
+
+Once we compute mu & sigma^2 with the training set we need to make sure to use the same values for the test set aswell. This is required to make sure that the inputs undergo the same transformation as they did with the mu & sigma^2 computed from the training set.
+
+==
+
+Why normalize?:
+
+Cost J(W,b) = (1 / m) * np.sum(L(ycap, y))
+
+When training with an unnormalized data set, when we plot the learning curve (Cost vs parameters) we get a squished, asymmetric curve function whose contours is elongated. However when we use normalized data set we get a spherical, symmetric curve function whose contours is not elongated.
+
+This is because when the input features are not in the same scale or range the weights/parameters they take also tend to have different variances. 
+
+With an asymmetric & elongated contour we need to set the learning rate alpha to a very small value since we will need to oscillate back & forth multiple times to find the global optima. However with a symmetric, nicely rounded contour we don't need to set the learning rate alpha to a very small value since we can take bigger & fewer steps to find the global optima.
+
+Thus by normalizing (having features with similar scales/ranges), we are essentially speeding up the process of optimizing the cost function.
+
+So, by subtracting the mean or having mean zero & normalizing the variance or having variance 1 we ensure that the input features in the data set is scaled properly thereby ensuring faster learning.
+
+Strictly, normalization is not needed if the input features are not in different ranges or scales. But since performing normalization anyway does not hurt it is always recommended perform normalization of the data set.
+
+
+=========
+
+Vanishing / Exploding gradients:
+
+One of the problems with training neural networks especially very deep neural networks is the problem of vanishing & exploding gradients. Basically what this means is that, when training very deep neural networks the derivatives or slopes can get either very very small (exponentially small) or very very large (exponentially large) as we go to the deeper layers. This then causes problems with the training since if its very small we might need a lot of gradient descent iteration steps to converge & if its very large again we again might need lots of iterations to oscillate back & forth to converge properly.
+
+The intuition behind is this, 
+
+Assuming a deep L layered NN with just two features x1 & x2 in X, using a linear activation function g(Z) = Z & having b = 0 (we will then have Zl = WlAl-1 & Al = Zl),
+
+ycap = Wl * Wl-1 * ..... * W3 * W2 * W1 * X
+
+Now if we initialize all the weights to be slightly higher than 1 or identity, say, W = [ [1.5, 0] 
+																						  [0, 1.5] ]																						  
+	- Since we are going to end up with each element in W raised to the power of L-1 (since WL may have different values) we will end up with very large values (1.5 ^ L-1) causing exploding gradients.
+
+Similarly if we initialize all the weights to be slightly smaller than 1 or identity, say, W = [ [0.5, 0] 
+																								 [0, 0.5] ]
+	- Again, since we are going to end up with each element in W raised to the power of L-1 (since WL may have different values) we will end up with very small values (0.5 ^ L-1) causing vanishing gradients.
+
+We looked at the activations here for intuition but the same applies to the derivatives or gradients aswell where derivatives or gradients can increase or decrease exponentially with L. (Microsoft for example recently used a 152 layer NN).
+
+Thus by carefully choosing the random initialization of the weights we can greatly reduce the problem of vanishing & exploding gradients.
+
+
+==========
+
+Weight Initialization for Deep Networks:
+
+Careful Random initialization of the weights as described below partially solves the vanishing & exploding gradients problem.
+
+Intuition:
+
+Looking at a single neuron, a = g(z) (we can later generalize it for the NN) with 4 inputs, n = 4 (x1 to x4) & bias, b being zero we see that,
+
+z = w1x1 + w2x2+..+ wnxn
+
+From the above we see that as n increases, w should decrease (larger the value of n smaller the values of w1 should be) in order to prevent the value of z becoming very large or very small causing the vanishing & exploding gradients problem.
+
+Technically wi should have a variance, Var(wi) = 1 / n
+
+If RELU is being used as activation function g(z) = RELU(z) then a variance of 2 / n seems to work better.
+
+So the random initialization would then be,
+
+Wl = np.random.randn(nl, nl-1) * np.sqrt( 2 / nl-1)
+
+This product between Gaussian random values & the sqrt term results in Wl have a variance of 2 / nl-1
+
+Thus when X has zero mean and standard variance, variance 1 the random initialized weights above by having a variance of 2 / n ensures the z has the same scale/variance.
+
+The reason is that weights above are initialized to be not too large or not too small than 1 & this reduces vanishing & exploding gradients to a great extent.
+
+Other variants:
+
+If the tanh activation function is used, then the second term would be replaced by,  np.sqrt( 1 / nl-1)
+	- This is called xavier initialization.
+
+Another variant of the second term used with some other activation functions is, np.sqrt( 2 / nl-1 + nl )
+	- Found by Yoshua Bengio
+	
+But the most commonly used is the first one used with RELU.
+
+The purpose of the above is to provide a default proper variance/scale for the weights during random initialization. In fact the variance of weights parameter can itself be tuned with another hyper parameter that multiplies into this term for variance above and this multiplier hyper parameter can then be searched for in the hyper parameter space to tune the variance. Although this is lower in importance when compared to other hyper parameters.
+
+In summary, by carefully scaling the weights during random initialization we minimize the problem of vanishing & exploding gradients.
+

@@ -1,0 +1,102 @@
+
+Numerical approximation of gradients:
+
+One of the methods of verifying the correctness of an algorithm's back propagation implementation is gradient checking. One of things needed to perform gradient checking is to numerically approximate gradient computations or estimate gradients.
+
+Given say F(@) = @^3, 
+
+One way to perform numerical approximation of gradient is to do the below one-sided difference estimation,
+
+We take a very small diff value epsilon of @ and get the F(@+epsilon). Now using the approach of height / width of the curve between F(@) and F(@+epsilon) we can numerically approximate/estimate the slope of the function or the derivative (of the gradient) at @, this would then be,
+
+F(@+epsilon) - F(@) / epsilon
+
+With this one-sided estimation if @ = 1 & epsilon = 0.01 we get, 1.030301 - 1 / 0.01	=	3.0301
+
+A better way to perform the numerical approximation of gradient is to do a two-sided difference estimation,
+
+Here we take @+epsilon & @-epsilon and get F(@+epsilon) & F(@-epsilon). Now using the same height / width of the curve method but between F(@+epsilon) & F(@-epsilon) we can more accurately estimate or approximate the derivative or the slope as shown below,
+
+With the two-sided estimation the formula becomes, 
+
+F(@+epsilon) - F(@-epsilon) / 2 * epsilon
+
+Using the same values as before, where @ = 1 & epsilon = 0.01 we get, 1.030301 - 0.970299 / 0.02	= 	3.0001
+
+As we see, given that we know the derivative for this function g(@) is 3 * @^2, the value of 3.0001 computed with the two-sided difference estimation is much accurate compared to 3.0301 computed with the one-sided difference estimation. The estimation error is just 0.0001. This therefore enables us to estimate/determine more confidently whether g(@) is a correct implementation of the derivative of F.
+
+Now using the two-sided difference in gradient checking will result in the algorithm running twice as slow as the one-sided difference but is still worth it in practice considering the much better accuracy of the estimation.
+
+The reasoning behind the above method is that in calculus, the formal definition of the derivative f' for very small values of epsilon is,
+
+f' (as epsilon approaches zero) = F(@+epsilon) - F(@-epsilon) / 2 * epsilon. Which is the formula we used above.
+
+It can be shown that for non-zero values of epsilon, the approximation error for this is of the order of epsilon^2. Since epsilon is a very small number, epsilon^2 is much much smaller.
+
+Whereas with the one-sided difference method the approximation error is of the order of epsilon which is bigger than epsilon^2 for the very small values of epsilon.
+
+This is why the two-sided difference method of estimating the derivative is much more accurate in estimating the derivative than the one-sided difference method & thus enables us to more confidently check whether the derivative implementation g is a correct implementation of the derivative of the model function f.
+
+Next step is to use this verify whether back propagation implementation is correct.
+
+==========
+
+Gradient checking:
+
+Gradient checking step is used to check or verify the correctness of the back propagation implementation & to ensure that the gradients computed from forward & backward propagation are in fact the correct gradient or slope of the cost function.
+
+Below are the steps to perform grad check,
+
+With the parameters W1, b1,...WL, bL & cost function J(W1, b1,...WL, bL)
+
+First unroll (reshape) & concatenate the parameters W1, b1,...WL, bL into a huge parameter vector @.
+	- Basically unroll & concatenate the matrices W1..WL each time concatenating the corresponding vector bl.
+	- Now the cost function becomes J(@).
+
+Similarly unroll (reshape) & concatenate the gradients dW1, db1,..dWL, dbL into a huge gradient vector d@ (will be of the same dimension as @).
+
+Now for grad check we need to determine if d@ is the gradient of J(@). For this we do the below,
+
+In a loop for each @i in @ we compute d@iapprox as below using the two-sided difference method of numerical approximation of gradients,
+
+d@iapprox =  ( J(@1,..,@i + epsilon,..,@n) - J(@1,..,@i - epsilon,..,@n) ) / ( 2 * epsilon )
+
+This will give us the d@approx vector (will be of the same dimension as @ & d@). We know that this would be the approximate gradient for J(@) with an approximation error of the order of epsilon^2. This and d@ should be equal.
+
+Now to determine if the vectors d@ and d@approx are close or approximately equal (d@ ~= d@approx), we need to basically, compute the euclidean distance between d@approx and d@ & normalize for the lengths of d@approx and d@.
+
+Diff = || d@approx - d@ ||2 / ||d@approx||2 + ||d@||2
+
+The numerator expression is the euclidean distance between the vectors d@approx & d@. Which is basically the square root of the sum of the squares of the distance/difference between d@approx & d@.
+
+The denominator expression is the euclidean lengths of the vectors d@approx & d@. Which is basically the same as above. Their purpose is to turn the expression into a ratio when the lengths of d@approx or d@ is too small or too large.
+
+Now we typically use an epsilon value of 10^-7.
+
+Using this epsilon, 
+	- If the Diff value computed above is 10^-7 or smaller, then our implementation is correct.
+	- If the Diff value compared above is around 10^-5, then our implementation may be okay, but might need to do cross verification on the components of the difference vector to look for large values & make sure there is none.
+	- If the Diff value compared above is 10^-3 or greater, then our implementation is incorrect. We will need to cross check to see if one or more of the parameters in d@ & d@approx differ largely & debug from there.
+
+==========
+
+Gradient Checking Implementation Notes:
+
+Below are the some of the implementation details to keep in mind when doing grad check,
+
+1. Do NOT use grad check in training. Use it only to debug.
+	- grad check to compute d@approx is a very time consuming operation & should not be run for each iteration of training/gradient descent. Once we have checked that the computed gradient is correct with grad check turn it off.
+
+2. If the algorithm/model fails grad check, look at the individual components to debug the issue.
+	- Look at the difference to determine which components of d@approx are far away from d@. This can be used to help isolate/debug further the corresponding dW or db that corresponds to the component element(s) in d@ that vary greatly from d@approx.
+
+3. Remember to take care of Regularization
+	- When regularization is used, remember the include the regularization term in the d@ computation as-well.
+	
+4. Does not work with Drop out regularization
+	- Since drop out regularization randomly eliminates various subsets of the activation units/inputs in each iteration its very difficult to deterministically compute the cost function J(@). Its possible to set some parameter to eliminate units in some fixed pattern & try & compute a cost function, but in practice its not recommended.
+	- So the recommended method is to turn off drop out by setting keepProb = 1 & then compute gradient & perform grad check. Once grad check passes, turn it back on again & hope that its not affected the computation.
+	
+5. Run at Random Initialization & then perhaps again after some training
+	- In some rare cases it may so happen that the gradient computation implementation is correct for small values of the parameters (close to zero) that are set as part of the initial random initialization but may not be so as the parameters get larger & move away from zero with training. So for such cases we can run grad check initially on random initialization to verify correctness & then again perform grad check after a bit of training to make sure its still correct.
+
